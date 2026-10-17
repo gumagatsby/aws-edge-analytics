@@ -64,6 +64,11 @@ Kept during the build, for the walkthrough. Each entry is what was seen, why it 
 - **Also found:** the CI step pointed at the config file relative to the wrong folder, so CI would have ignored every skip. Fixed to `terraform/.checkov.yml`.
 - **Lesson:** a skip list is only honest if every skip has a written reason.
 
+### CI ran a newer scanner than the laptop
+- **Seen:** the security scan passed locally (186 checks) and failed on the first push (248 checks, 23 failures). CI pulls the latest Checkov image (3.3.29); the laptop had 3.3.20, which lacked several checks.
+- **Changed:** each new finding was judged on its merits and every skip has its reason in `terraform/.checkov.yml`. Two are skips because the check conflicts with the brief: cross-region replication would move data out of eu-west-2 (N6), and versioning on the raw bucket would keep deleted logs, with IP addresses, past the 7 days N1 allows. The local scanner was matched to CI's version: 248 passed, 0 failed.
+- **Lesson:** pin or match tool versions between laptop and CI, or the first push is the first real scan. And a scanner's rule is generic; the brief decides which rules apply.
+
 ### First deploy failed: a placeholder inside a comment
 - **Seen:** the deploy-time step that creates the curated tables failed with `Invalid placeholder in string`.
 - **Why:** the SQL files use `${name}` placeholders, and a comment explaining them contained `${...}`. The renderer substituted before removing comments.
