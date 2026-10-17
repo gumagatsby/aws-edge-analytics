@@ -1,0 +1,28 @@
+snapshot of 2026-10-12 written to docs/evidence/n4-after-12.json
+== 2026-10-12
+  edge_analytics_clean.quarantine               {'rows': 0, 'checksum': None}  same
+  edge_analytics_clean.requests                 {'rows': 184389, 'checksum': '180DAF4BBC97884B'}  same
+  edge_analytics_curated.agg_ab_daily           {'rows': 2, 'checksum': 'EB8C1A825BC2CBE3'}  same
+  edge_analytics_curated.agg_bots_daily         {'rows': 4, 'checksum': '9561BF816538EBF5'}  same
+  edge_analytics_curated.agg_cache_daily        {'rows': 4, 'checksum': '2A15C73773FBEF34'}  same
+  edge_analytics_curated.agg_cost_daily         {'rows': 10, 'checksum': 'EC0875231649673F'}  same
+  edge_analytics_curated.agg_country_daily      {'rows': 18, 'checksum': '5820B642E8189873'}  same
+  edge_analytics_curated.agg_edge_daily         {'rows': 38, 'checksum': '9E92C5085712630F'}  same
+  edge_analytics_curated.agg_errors_daily       {'rows': 38, 'checksum': 'DF65DD113D1DFED1'}  same
+  edge_analytics_curated.dim_date               {'rows': 1, 'checksum': '8EF167F0BDCE3AB6'}  same
+  edge_analytics_curated.fact_request           {'rows': 184389, 'checksum': '454FA81920633FB8'}  same
+PASS  N4 re-processing a day gives identical tables (rows and checksums)  (11 tables compared)
+snapshot of 2026-10-13 written to docs/evidence/n4-after-13.json
+== 2026-10-13
+  edge_analytics_clean.quarantine               {'rows': 0, 'checksum': None}  same
+  edge_analytics_clean.requests                 {'rows': 185026, 'checksum': 'FA1F61FCD56FF164'}  same
+  edge_analytics_curated.agg_ab_daily           {'rows': 2, 'checksum': 'B4142561243BB19A'}  same
+  edge_analytics_curated.agg_bots_daily         {'rows': 4, 'checksum': 'B039BF60B99A1E37'}  same
+  edge_analytics_curated.agg_cache_daily        {'rows': 4, 'checksum': 'E66B00E2CD786047'}  same
+  edge_analytics_curated.agg_cost_daily         {'rows': 10, 'checksum': 'C456924E778DFA06'}  same
+  edge_analytics_curated.agg_country_daily      {'rows': 18, 'checksum': 'D554389BC613566A'}  same
+  edge_analytics_curated.agg_edge_daily         {'rows': 38, 'checksum': 'DE48C4009ECF510A'}  same
+  edge_analytics_curated.agg_errors_daily       {'rows': 49, 'checksum': '5AA2308EBD9DC417'}  same
+  edge_analytics_curated.dim_date               {'rows': 1, 'checksum': '78F2106181AB6160'}  same
+  edge_analytics_curated.fact_request           {'rows': 185026, 'checksum': '8BE869B3EC02488E'}  same
+PASS  N4 re-processing a day gives identical tables (rows and checksums)  (11 tables compared)

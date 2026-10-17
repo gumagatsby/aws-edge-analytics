@@ -1,0 +1,4 @@
+raw layer holds 96661 distinct client addresses (kept in memory only)
+PASS  N1 edge_analytics_clean.requests.client_network holds only /24 and /48 networks  (29431 distinct values, 0 not network addresses)
+PASS  N1 no raw client address in any string column of the clean or curated layer  (85 columns scanned; leaks in: none)
+PASS  N1 raw logs expire after 7 days  (expiration rules: [7])

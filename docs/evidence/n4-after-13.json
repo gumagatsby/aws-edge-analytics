@@ -1,0 +1,46 @@
+{
+  "edge_analytics_clean.quarantine": {
+    "rows": 0,
+    "checksum": null
+  },
+  "edge_analytics_clean.requests": {
+    "rows": 185026,
+    "checksum": "FA1F61FCD56FF164"
+  },
+  "edge_analytics_curated.agg_ab_daily": {
+    "rows": 2,
+    "checksum": "B4142561243BB19A"
+  },
+  "edge_analytics_curated.agg_bots_daily": {
+    "rows": 4,
+    "checksum": "B039BF60B99A1E37"
+  },
+  "edge_analytics_curated.agg_cache_daily": {
+    "rows": 4,
+    "checksum": "E66B00E2CD786047"
+  },
+  "edge_analytics_curated.agg_cost_daily": {
+    "rows": 10,
+    "checksum": "C456924E778DFA06"
+  },
+  "edge_analytics_curated.agg_country_daily": {
+    "rows": 18,
+    "checksum": "D554389BC613566A"
+  },
+  "edge_analytics_curated.agg_edge_daily": {
+    "rows": 38,
+    "checksum": "DE48C4009ECF510A"
+  },
+  "edge_analytics_curated.agg_errors_daily": {
+    "rows": 49,
+    "checksum": "5AA2308EBD9DC417"
+  },
+  "edge_analytics_curated.dim_date": {
+    "rows": 1,
+    "checksum": "78F2106181AB6160"
+  },
+  "edge_analytics_curated.fact_request": {
+    "rows": 185026,
+    "checksum": "8BE869B3EC02488E"
+  }
+}

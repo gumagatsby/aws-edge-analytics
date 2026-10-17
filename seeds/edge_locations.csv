@@ -1,0 +1,62 @@
+edge_code,city,country_code,continent,pricing_region,price_class
+IAD,Ashburn,US,North America,United States,PriceClass_100
+JFK,New York,US,North America,United States,PriceClass_100
+EWR,Newark,US,North America,United States,PriceClass_100
+BOS,Boston,US,North America,United States,PriceClass_100
+ATL,Atlanta,US,North America,United States,PriceClass_100
+MIA,Miami,US,North America,United States,PriceClass_100
+ORD,Chicago,US,North America,United States,PriceClass_100
+DFW,Dallas,US,North America,United States,PriceClass_100
+DEN,Denver,US,North America,United States,PriceClass_100
+LAX,Los Angeles,US,North America,United States,PriceClass_100
+SFO,San Francisco,US,North America,United States,PriceClass_100
+SEA,Seattle,US,North America,United States,PriceClass_100
+QRO,Queretaro,MX,North America,United States,PriceClass_100
+YTO,Toronto,CA,North America,Canada,PriceClass_100
+YUL,Montreal,CA,North America,Canada,PriceClass_100
+YVR,Vancouver,CA,North America,Canada,PriceClass_100
+LHR,London,GB,Europe,Europe,PriceClass_100
+MAN,Manchester,GB,Europe,Europe,PriceClass_100
+DUB,Dublin,IE,Europe,Europe,PriceClass_100
+AMS,Amsterdam,NL,Europe,Europe,PriceClass_100
+FRA,Frankfurt,DE,Europe,Europe,PriceClass_100
+MUC,Munich,DE,Europe,Europe,PriceClass_100
+CDG,Paris,FR,Europe,Europe,PriceClass_100
+MRS,Marseille,FR,Europe,Europe,PriceClass_100
+MAD,Madrid,ES,Europe,Europe,PriceClass_100
+MXP,Milan,IT,Europe,Europe,PriceClass_100
+ARN,Stockholm,SE,Europe,Europe,PriceClass_100
+CPH,Copenhagen,DK,Europe,Europe,PriceClass_100
+WAW,Warsaw,PL,Europe,Europe,PriceClass_100
+VIE,Vienna,AT,Europe,Europe,PriceClass_100
+ZRH,Zurich,CH,Europe,Europe,PriceClass_100
+TLV,Tel Aviv,IL,Asia,Europe,PriceClass_100
+DXB,Dubai,AE,Asia,Middle East,PriceClass_200
+FJR,Fujairah,AE,Asia,Middle East,PriceClass_200
+BAH,Manama,BH,Asia,Middle East,PriceClass_200
+JNB,Johannesburg,ZA,Africa,South Africa,PriceClass_200
+CPT,Cape Town,ZA,Africa,South Africa,PriceClass_200
+NBO,Nairobi,KE,Africa,South Africa,PriceClass_200
+LOS,Lagos,NG,Africa,South Africa,PriceClass_200
+BOM,Mumbai,IN,Asia,India,PriceClass_200
+DEL,New Delhi,IN,Asia,India,PriceClass_200
+MAA,Chennai,IN,Asia,India,PriceClass_200
+BLR,Bengaluru,IN,Asia,India,PriceClass_200
+SIN,Singapore,SG,Asia,Asia Pacific,PriceClass_200
+HKG,Hong Kong,HK,Asia,Asia Pacific,PriceClass_200
+ICN,Seoul,KR,Asia,Asia Pacific,PriceClass_200
+TPE,Taipei,TW,Asia,Asia Pacific,PriceClass_200
+KUL,Kuala Lumpur,MY,Asia,Asia Pacific,PriceClass_200
+BKK,Bangkok,TH,Asia,Asia Pacific,PriceClass_200
+CGK,Jakarta,ID,Asia,Asia Pacific,PriceClass_200
+NRT,Tokyo,JP,Asia,Japan,PriceClass_200
+KIX,Osaka,JP,Asia,Japan,PriceClass_200
+SYD,Sydney,AU,Oceania,Australia,PriceClass_All
+MEL,Melbourne,AU,Oceania,Australia,PriceClass_All
+AKL,Auckland,NZ,Oceania,Australia,PriceClass_All
+GRU,Sao Paulo,BR,South America,South America,PriceClass_All
+GIG,Rio de Janeiro,BR,South America,South America,PriceClass_All
+EZE,Buenos Aires,AR,South America,South America,PriceClass_All
+SCL,Santiago,CL,South America,South America,PriceClass_All
+BOG,Bogota,CO,South America,South America,PriceClass_All
+LIM,Lima,PE,South America,South America,PriceClass_All

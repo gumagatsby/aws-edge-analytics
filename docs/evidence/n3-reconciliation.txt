@@ -1,0 +1,9 @@
+  2026-10-10 synthetic raw  185,806 = clean  185,806 + quarantined     0  true
+  2026-10-11 synthetic raw  185,156 = clean  185,156 + quarantined     0  true
+  2026-10-12 synthetic raw  184,389 = clean  184,389 + quarantined     0  true
+  2026-10-13 synthetic raw  185,026 = clean  185,026 + quarantined     0  true
+  2026-10-14 synthetic raw  185,190 = clean  185,190 + quarantined     0  true
+  2026-10-15 synthetic raw  184,893 = clean  184,893 + quarantined     0  true
+  2026-10-16 synthetic raw  185,065 = clean  185,065 + quarantined     0  true
+  2026-10-17 real      raw    7,887 = clean    7,887 + quarantined     0  true
+PASS  N3 every run reconciles (raw = clean + quarantined)  (8 day/source runs)

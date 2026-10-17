@@ -1,0 +1,8 @@
+phase=normalise_on start=2026-10-17T09:33:59Z
+3933 requests in 274 s
+status: {'status_200': 3933}
+cache: 3159 hits, 774 other
+visitors A/B: 126 174  converters A/B: 1 4
+bots: crawler sessions 20  scraper sessions 5
+edge locations: {'JNB': 3900, 'LOS': 33}
+phase=normalise_on end=2026-10-17T09:38:34Z

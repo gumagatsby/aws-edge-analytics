@@ -1,0 +1,379 @@
+{
+  "generated_with": {
+    "seed": 42,
+    "start": "2026-10-10",
+    "days": 7,
+    "visitors_per_day": 12000,
+    "normalisation_from_day_index": 4,
+    "conversion_rate": {
+      "A": 0.03,
+      "B": 0.036
+    },
+    "tracking_share": 0.35,
+    "broken_link_share": 0.015,
+    "api_incident": {
+      "edge": "SIN",
+      "day_index": 3,
+      "error_rate": 0.25
+    }
+  },
+  "days": {
+    "2026-10-10": {
+      "visitors": {
+        "A": 6025,
+        "B": 5975
+      },
+      "converters": {
+        "A": 193,
+        "B": 203
+      },
+      "human_requests": 163411,
+      "known_bot_requests": 13761,
+      "scripted_requests": 8562,
+      "stealth_requests": 72,
+      "broken_link": 433,
+      "api_502": 0,
+      "bytes_by_country": {
+        "IE": 441674546,
+        "GB": 4771421204,
+        "US": 2907689639,
+        "DE": 1182135579,
+        "IN": 961136932,
+        "FR": 749455045,
+        "JP": 606004713,
+        "BR": 787851631,
+        "AU": 751908496,
+        "AE": 443575602,
+        "ZA": 315919438,
+        "SG": 503894087,
+        "CA": 498107866,
+        "KR": 363648726,
+        "IL": 161192194,
+        "NL": 498765972,
+        "NZ": 176603258,
+        "AR": 201013735
+      },
+      "total_requests": 185806,
+      "bot_share": 0.1205,
+      "distinct_visitors": {
+        "A": 6025,
+        "B": 5975
+      },
+      "distinct_converters": {
+        "A": 193,
+        "B": 203
+      },
+      "conversion_observed": {
+        "A": 0.032,
+        "B": 0.034
+      },
+      "normalisation_on": false
+    },
+    "2026-10-11": {
+      "visitors": {
+        "A": 6104,
+        "B": 5896
+      },
+      "converters": {
+        "A": 175,
+        "B": 221
+      },
+      "human_requests": 162642,
+      "known_bot_requests": 13850,
+      "scripted_requests": 8592,
+      "stealth_requests": 72,
+      "broken_link": 480,
+      "api_502": 0,
+      "bytes_by_country": {
+        "GB": 4641015034,
+        "DE": 1077683871,
+        "US": 2942656221,
+        "FR": 790758627,
+        "SG": 479198729,
+        "ZA": 288897658,
+        "AR": 147699583,
+        "IL": 158822502,
+        "AE": 467615973,
+        "IN": 983641626,
+        "JP": 699467556,
+        "NZ": 187583894,
+        "BR": 748486049,
+        "IE": 506572602,
+        "KR": 324894532,
+        "NL": 496249794,
+        "AU": 797849242,
+        "CA": 503750777
+      },
+      "total_requests": 185156,
+      "bot_share": 0.1216,
+      "distinct_visitors": {
+        "A": 6104,
+        "B": 5895
+      },
+      "distinct_converters": {
+        "A": 175,
+        "B": 221
+      },
+      "conversion_observed": {
+        "A": 0.0287,
+        "B": 0.0375
+      },
+      "normalisation_on": false
+    },
+    "2026-10-12": {
+      "visitors": {
+        "A": 5946,
+        "B": 6054
+      },
+      "converters": {
+        "A": 180,
+        "B": 236
+      },
+      "human_requests": 162699,
+      "known_bot_requests": 13493,
+      "scripted_requests": 8125,
+      "stealth_requests": 72,
+      "broken_link": 487,
+      "api_502": 0,
+      "bytes_by_country": {
+        "GB": 4459974527,
+        "US": 2943347050,
+        "AE": 500211084,
+        "CA": 485021569,
+        "ZA": 326610892,
+        "FR": 854498562,
+        "IN": 979746871,
+        "SG": 547623385,
+        "AU": 802565949,
+        "JP": 655317896,
+        "DE": 1132058402,
+        "BR": 837726114,
+        "IL": 152765626,
+        "NL": 478694186,
+        "AR": 166650799,
+        "IE": 483883787,
+        "NZ": 155200794,
+        "KR": 297150867
+      },
+      "total_requests": 184389,
+      "bot_share": 0.1176,
+      "distinct_visitors": {
+        "A": 5946,
+        "B": 6054
+      },
+      "distinct_converters": {
+        "A": 180,
+        "B": 236
+      },
+      "conversion_observed": {
+        "A": 0.0303,
+        "B": 0.039
+      },
+      "normalisation_on": false
+    },
+    "2026-10-13": {
+      "visitors": {
+        "A": 5998,
+        "B": 6002
+      },
+      "converters": {
+        "A": 172,
+        "B": 212
+      },
+      "human_requests": 162882,
+      "known_bot_requests": 13670,
+      "scripted_requests": 8402,
+      "stealth_requests": 72,
+      "broken_link": 435,
+      "api_502": 245,
+      "bytes_by_country": {
+        "CA": 532567706,
+        "AE": 530160645,
+        "KR": 352018149,
+        "FR": 821442621,
+        "DE": 1140487893,
+        "BR": 764551102,
+        "GB": 4569027324,
+        "US": 2889585253,
+        "ZA": 285172008,
+        "AU": 791513015,
+        "AR": 173240707,
+        "IN": 997134175,
+        "SG": 508617528,
+        "NL": 483533467,
+        "JP": 717988861,
+        "NZ": 165200947,
+        "IE": 430243302,
+        "IL": 153814491
+      },
+      "total_requests": 185026,
+      "bot_share": 0.1197,
+      "distinct_visitors": {
+        "A": 5998,
+        "B": 6002
+      },
+      "distinct_converters": {
+        "A": 172,
+        "B": 212
+      },
+      "conversion_observed": {
+        "A": 0.0287,
+        "B": 0.0353
+      },
+      "normalisation_on": false
+    },
+    "2026-10-14": {
+      "visitors": {
+        "A": 6041,
+        "B": 5959
+      },
+      "converters": {
+        "A": 169,
+        "B": 196
+      },
+      "human_requests": 163004,
+      "known_bot_requests": 13555,
+      "scripted_requests": 8559,
+      "stealth_requests": 72,
+      "broken_link": 456,
+      "api_502": 0,
+      "bytes_by_country": {
+        "US": 2921420845,
+        "IN": 1021597367,
+        "AE": 520570199,
+        "GB": 4513423637,
+        "JP": 655102593,
+        "IL": 145152784,
+        "SG": 467656105,
+        "FR": 758608895,
+        "NL": 465162553,
+        "ZA": 301400270,
+        "IE": 548135692,
+        "AU": 817168588,
+        "DE": 1225413165,
+        "CA": 505261343,
+        "BR": 759070127,
+        "KR": 346693892,
+        "NZ": 168565225,
+        "AR": 153150460
+      },
+      "total_requests": 185190,
+      "bot_share": 0.1198,
+      "distinct_visitors": {
+        "A": 6041,
+        "B": 5959
+      },
+      "distinct_converters": {
+        "A": 169,
+        "B": 196
+      },
+      "conversion_observed": {
+        "A": 0.028,
+        "B": 0.0329
+      },
+      "normalisation_on": true
+    },
+    "2026-10-15": {
+      "visitors": {
+        "A": 6052,
+        "B": 5948
+      },
+      "converters": {
+        "A": 159,
+        "B": 207
+      },
+      "human_requests": 162565,
+      "known_bot_requests": 13768,
+      "scripted_requests": 8488,
+      "stealth_requests": 72,
+      "broken_link": 448,
+      "api_502": 0,
+      "bytes_by_country": {
+        "GB": 4581909850,
+        "BR": 851295603,
+        "US": 2853769444,
+        "AU": 861976930,
+        "JP": 672651457,
+        "FR": 853551867,
+        "ZA": 319460135,
+        "SG": 490906977,
+        "IN": 899026738,
+        "KR": 338702382,
+        "AE": 476308787,
+        "DE": 1091774032,
+        "IE": 480944143,
+        "CA": 481932644,
+        "AR": 165089273,
+        "NL": 486862418,
+        "NZ": 160808017,
+        "IL": 170745278
+      },
+      "total_requests": 184893,
+      "bot_share": 0.1208,
+      "distinct_visitors": {
+        "A": 6052,
+        "B": 5948
+      },
+      "distinct_converters": {
+        "A": 159,
+        "B": 207
+      },
+      "conversion_observed": {
+        "A": 0.0263,
+        "B": 0.0348
+      },
+      "normalisation_on": true
+    },
+    "2026-10-16": {
+      "visitors": {
+        "A": 6061,
+        "B": 5939
+      },
+      "converters": {
+        "A": 172,
+        "B": 196
+      },
+      "human_requests": 162881,
+      "known_bot_requests": 13612,
+      "scripted_requests": 8500,
+      "stealth_requests": 72,
+      "broken_link": 441,
+      "api_502": 0,
+      "bytes_by_country": {
+        "GB": 4605334632,
+        "JP": 639958686,
+        "US": 2992736436,
+        "IN": 960304231,
+        "ZA": 366947675,
+        "KR": 323221090,
+        "FR": 810108082,
+        "DE": 1086939080,
+        "IE": 433029525,
+        "AU": 815198928,
+        "BR": 813721220,
+        "SG": 488973935,
+        "CA": 486113478,
+        "AE": 537962071,
+        "NZ": 119001975,
+        "IL": 165761813,
+        "AR": 143627141,
+        "NL": 496970660
+      },
+      "total_requests": 185065,
+      "bot_share": 0.1199,
+      "distinct_visitors": {
+        "A": 6061,
+        "B": 5939
+      },
+      "distinct_converters": {
+        "A": 172,
+        "B": 196
+      },
+      "conversion_observed": {
+        "A": 0.0284,
+        "B": 0.033
+      },
+      "normalisation_on": true
+    }
+  }
+}

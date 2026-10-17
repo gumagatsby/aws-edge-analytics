@@ -1,0 +1,5 @@
+N5 evidence (real failure, not staged): backfill backfill-20261017T095117, day 2026-10-10.
+Glue data quality rule failed (false positive, see docs/04-build-log.md); Step Functions caught it.
+Execution stopped:  2026-10-17T09:54:48Z
+Alarm message in the alerts queue: 2026-10-17T09:55:58Z  (ALARM "edge-analytics-pipeline-failed", EU London)
+Time from failure to alert: 70 s (requirement: within 15 minutes)

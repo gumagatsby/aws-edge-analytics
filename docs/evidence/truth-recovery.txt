@@ -1,0 +1,18 @@
+day                  requests   bot share % (planted)     404 broken   502 incident
+2026-10-10   185,806 (185,806)      12.05 ( 12.05)    433 (  433)      0 (    0)
+2026-10-11   185,156 (185,156)      12.16 ( 12.16)    480 (  480)      0 (    0)
+2026-10-12   184,389 (184,389)      11.76 ( 11.76)    487 (  487)      0 (    0)
+2026-10-13   185,026 (185,026)      11.97 ( 11.97)    435 (  435)    245 (  245)
+2026-10-14   185,190 (185,190)      11.98 ( 11.98)    456 (  456)      0 (    0)
+2026-10-15   184,893 (184,893)      12.08 ( 12.08)    448 (  448)      0 (    0)
+2026-10-16   185,065 (185,065)      11.99 ( 11.99)    441 (  441)      0 (    0)
+PASS  every synthetic request counted, every day
+PASS  known crawlers found exactly, every day
+PASS  bot share within 0.5 percentage points of planted, every day  (largest gap 0.00 pp)
+PASS  broken link 404s found exactly, every day
+PASS  API incident 502s at SIN found exactly, every day
+PASS  human bytes by country within 0.01%, every day and country  (largest gap 0.00000%)
+PASS  experiment visitors and converters found exactly, every day and group  (1 generated session(s) shared an IP and user agent with another)
+experiment over 7 days: A 1220/42227 = 2.889%, B 1471/41772 = 3.521%; difference 0.63 pp, 95% interval 0.39 to 0.87 pp; planted 0.60 pp
+PASS  experiment: B better than A at 95% confidence
+PASS  experiment: planted effect lies inside the 95% interval

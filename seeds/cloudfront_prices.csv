@@ -1,0 +1,12 @@
+pricing_region,usd_per_gb_first_10tb,description,fetched
+Any,0.0,First 1 TB of data transfer free each month under CloudFront free tier,2026-10-17
+Asia Pacific,0.12,$0.120 per GB - first 10 TB / month data transfer out,2026-10-17
+Australia,0.114,$0.114 per GB - first 10 TB / month data transfer out,2026-10-17
+Canada,0.085,$0.085 per GB - first 10 TB / month data transfer out (Canada),2026-10-17
+Europe,0.085,$0.085 per GB - first 10 TB / month data transfer out,2026-10-17
+India,0.109,$0.109 per GB - first 10 TB / month data transfer out (India),2026-10-17
+Japan,0.114,$0.114 per GB - first 10 TB / month data transfer out,2026-10-17
+Middle East,0.11,$0.110 per GB - first 10 TB / month data transfer out,2026-10-17
+South Africa,0.11,$0.110 per GB - first 10 TB / month data transfer out,2026-10-17
+South America,0.11,$0.110 per GB - first 10 TB / month data transfer out,2026-10-17
+United States,0.085,$0.085 per GB - first 10 TB / month data transfer out,2026-10-17

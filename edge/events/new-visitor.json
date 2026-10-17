@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "context": {"eventType": "viewer-request"},
+  "viewer": {"ip": "198.51.100.7"},
+  "request": {
+    "method": "GET",
+    "uri": "/",
+    "querystring": {"utm_source": {"value": "newsletter"}, "colour": {"value": "red"}},
+    "headers": {"user-agent": {"value": "Mozilla/5.0"}},
+    "cookies": {}
+  }
+}

@@ -1,0 +1,40 @@
+# Checks skipped on purpose, each with the reason. Everything else must pass.
+skip-check:
+  # The default key policy pattern: the account root administers the key through IAM.
+  - CKV_AWS_109
+  - CKV_AWS_111
+  - CKV_AWS_356
+  # Reserved concurrency: this account's Lambda limit is 10, and AWS requires 10 to stay
+  # unreserved, so no function can reserve any. Recorded in docs/decisions.
+  - CKV_AWS_115
+  # Dead-letter queues apply to asynchronous invocation. Both functions are invoked
+  # synchronously (CloudFront, Step Functions), which return errors to the caller.
+  - CKV_AWS_116
+  # No VPC resources are reached, so a VPC would add NAT cost and nothing else.
+  - CKV_AWS_117
+  # Code signing needs AWS Signer profiles; out of scope for a disposable demo.
+  - CKV_AWS_272
+  # The API function would trace every shopper request; the pipeline function is traced.
+  - CKV_AWS_50
+  # Log retention is 7 to 14 days on purpose: logs are diagnostics, not records, and
+  # keeping less is data minimisation.
+  - CKV_AWS_338
+  # The default CloudFront certificate cannot set a minimum TLS version; a custom
+  # domain and ACM certificate would (TLSv1.2_2021).
+  - CKV_AWS_174
+  # WAF costs at least $5 a month per web ACL plus per-rule charges; AWS WAF Bot Control
+  # is the production recommendation in the results. Out of scope for the $10 budget.
+  - CKV_AWS_68
+  # Logging is standard logging (v2) through CloudWatch log delivery (logging.tf),
+  # which this check does not detect.
+  - CKV_AWS_86
+  # One static origin and one function origin in one Region; failover is a production item.
+  - CKV_AWS_310
+  # The shop sells worldwide; there is no country to block.
+  - CKV_AWS_374
+  # The schedule's only input is "{}".
+  - CKV_AWS_297
+  # glue:PublishDataQuality does not support resource-level permissions.
+  - CKV_AWS_290
+  - CKV_AWS_355
+  - CKV_AWS_300  # abort-incomplete-multipart rule exists in modules/bucket; Checkov does not detect it through the dynamic block

@@ -1,0 +1,8 @@
+PASS  N2 analyst can query report tables
+PASS  N2 analyst can query the request table without visitor_id
+PASS  N2 analyst cannot read visitor_id  (COLUMN_NOT_FOUND: Column 'visitor_id' cannot be resolved or requester is not authorized to access requested resources)
+PASS  N2 analyst SELECT * returns every column except visitor_id  (25 columns returned)
+PASS  N2 analyst cannot query the clean layer  (Insufficient permissions to execute the query. User: arn:aws:sts::<account-id>:assumed-role/edge-analytics-analyst/verify is not authorized to perform: glue:Get)
+PASS  N2 analyst cannot use the data engineer's workgroup  (An error occurred (AccessDeniedException) when calling the StartQueryExecution operation: You are not authorized to perform: athena:StartQueryExecution on the r)
+PASS  N2 data engineer can read visitor_id
+PASS  N2 analyst cannot open the engineer's query results  (AccessDenied)

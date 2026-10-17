@@ -1,0 +1,26 @@
+# Real traffic from a GitHub-hosted runner, so the logs include a second real edge
+# location. Needs no AWS credentials: it only makes HTTP requests to the site.
+name: traffic
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: CloudFront URL of the site
+        required: true
+      visitors:
+        description: Simulated shoppers
+        default: "300"
+
+permissions:
+  contents: read
+
+jobs:
+  traffic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: python traffic/real.py --base-url "${{ inputs.base_url }}" --visitors "${{ inputs.visitors }}"

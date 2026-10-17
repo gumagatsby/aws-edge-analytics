@@ -1,0 +1,19 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Terraform: local state, plans and build output stay on the machine that deploys
+terraform/.terraform/
+terraform/.build/
+terraform/tfplan
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log
+
+# Local working files
+.rerun-arn
+out/
+.DS_Store
