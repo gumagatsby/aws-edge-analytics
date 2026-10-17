@@ -2,12 +2,10 @@
 # GitHub exchanges a short-lived token for a read-only role; no AWS keys are stored.
 name: edge-runtime
 
+# The CI role's ARN (terraform output ci_role_arn) is a repository secret, so the account
+# ID does not appear on the public run page.
 on:
   workflow_dispatch:
-    inputs:
-      role_arn:
-        description: ARN of the CI role (terraform output ci_role_arn)
-        required: true
 
 permissions:
   contents: read
@@ -20,7 +18,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: ${{ inputs.role_arn }}
+          role-to-assume: ${{ secrets.AWS_CI_ROLE_ARN }}
           aws-region: us-east-1
       - name: New visitor on the homepage gets a group and a rewrite
         run: |

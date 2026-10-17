@@ -1,5 +1,6 @@
 # Real traffic from a GitHub-hosted runner, so the logs include a second real edge
-# location. Needs no AWS credentials: it only makes HTTP requests to the site.
+# location. Needs no AWS credentials: it only makes HTTP requests to the site. Six workers
+# keep the API under the account's Lambda concurrency limit of 10.
 name: traffic
 
 on:
@@ -23,4 +24,4 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
-      - run: python traffic/real.py --base-url "${{ inputs.base_url }}" --visitors "${{ inputs.visitors }}"
+      - run: python traffic/real.py --base-url "${{ inputs.base_url }}" --visitors "${{ inputs.visitors }}" --workers 6
