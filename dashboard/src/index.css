@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+/* Edge insights. An operations sheet for a CDN: big figures first, the network map as the
+   centre, then one band per question the client asked. Surfaces are separated by a step in
+   tone, never by lines or shadows (tables keep their rules). Two faces: Archivo for the
+   figures and headings, IBM Plex Sans for everything else, with tabular figures. */
+:root {
+  --canvas: #edf0ee;
+  --surface: #fbfcfb;
+  --ink: #10161a;
+  --ink-2: #3a454c;
+  --mute: #66727a;
+  --line: #d6dcd9;
+  --accent: #0a6a5c;
+  --accent-2: #4f9c8f;
+  --accent-soft: #d3e9e3;
+  --good: #1d7f48;
+  --good-soft: #dcefe3;
+  --warn: #a36000;
+  --warn-soft: #f6e6cc;
+  --bad: #bf2f2c;
+  --bad-soft: #f8dedc;
+  --map-empty: #dfe5e2;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --canvas: #0c1113; --surface: #131a1d; --ink: #e5ebe9; --ink-2: #b4bfc2; --mute: #869398;
+    --line: #243034; --accent: #43bea8; --accent-2: #2b7f71; --accent-soft: #15332e;
+    --good: #4cc289; --good-soft: #13301f; --warn: #e2a142; --warn-soft: #382a12;
+    --bad: #f0776d; --bad-soft: #3b1b19; --map-empty: #1d2629; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --canvas: #0c1113; --surface: #131a1d; --ink: #e5ebe9; --ink-2: #b4bfc2; --mute: #869398;
+  --line: #243034; --accent: #43bea8; --accent-2: #2b7f71; --accent-soft: #15332e;
+  --good: #4cc289; --good-soft: #13301f; --warn: #e2a142; --warn-soft: #382a12;
+  --bad: #f0776d; --bad-soft: #3b1b19; --map-empty: #1d2629; color-scheme: dark;
+}
+
+/* The chart components read these names. */
+:root {
+  --background: var(--surface);
+  --foreground: var(--ink);
+  --muted-foreground: var(--mute);
+  --border: var(--line);
+  --radius-xl: 10px;
+  --chart-background: var(--surface);
+  --chart-foreground: var(--ink);
+  --chart-foreground-muted: var(--mute);
+  --chart-label: var(--mute);
+  --chart-grid: var(--line);
+  --chart-crosshair: var(--ink-2);
+  --chart-tooltip-background: var(--surface);
+  --chart-line-primary: var(--accent);
+  --chart-line-secondary: var(--mute);
+  --chart-indicator-color: var(--accent);
+  --chart-indicator-secondary-color: var(--mute);
+  --chart-marker-background: var(--surface);
+  --chart-marker-border: var(--accent);
+  --chart-marker-foreground: var(--ink);
+  --chart-marker-badge-background: var(--accent);
+  --chart-marker-badge-foreground: var(--surface);
+  --chart-segment-background: var(--accent-soft);
+  --chart-segment-line: var(--accent);
+  --chart-brush-border: var(--accent);
+  --chart-scale-pattern-color: var(--mute);
+  --chart-1: var(--accent);
+  --chart-2: var(--mute);
+  --chart-3: var(--warn);
+  --chart-4: var(--bad);
+  --chart-5: var(--ink-2);
+  --shimmering-color: var(--mute);
+}
+
+@theme inline {
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-mute: var(--mute);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-good: var(--good);
+  --color-good-soft: var(--good-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+}
+
+html { background: var(--canvas); }
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  -webkit-tap-highlight-color: transparent;
+}
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button, a { touch-action: manipulation; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: left; font-weight: 500; color: var(--mute); padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+th.n, td.n { text-align: right; }

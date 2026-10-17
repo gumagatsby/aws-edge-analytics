@@ -34,6 +34,9 @@ function handler(event) {
     // lookup, so each design is cached separately.
     if (HOMEPAGE[request.uri]) {
         request.uri = v.group === 'B' ? '/variants/b/index.html' : '/index.html';
+    } else if (request.uri.charAt(request.uri.length - 1) === '/') {
+        // Other folders (the insights dashboard) serve their own index page.
+        request.uri += 'index.html';
     }
 
     var removed = 0;

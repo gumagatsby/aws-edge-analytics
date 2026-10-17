@@ -1,0 +1,51 @@
+{
+  "name": "dashboard",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@number-flow/react": "0.6.2",
+    "@tailwindcss/vite": "4.3.3",
+    "@types/geojson": "7946.0.16",
+    "@visx/curve": "4.0.0",
+    "@visx/event": "4.0.0",
+    "@visx/geo": "4.0.0",
+    "@visx/gradient": "4.0.0",
+    "@visx/grid": "4.0.0",
+    "@visx/group": "4.0.0",
+    "@visx/responsive": "4.0.0",
+    "@visx/scale": "4.0.0",
+    "@visx/shape": "4.0.0",
+    "@visx/zoom": "4.0.0",
+    "clsx": "2.1.1",
+    "d3-array": "3.2.4",
+    "d3-geo": "3.1.1",
+    "d3-shape": "3.2.0",
+    "motion": "14.3.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tailwind-merge": "3.4.0",
+    "tailwindcss": "4.3.3",
+    "topojson-client": "3.1.0",
+    "world-atlas": "2.0.2"
+  },
+  "devDependencies": {
+    "@types/d3-array": "3.2.2",
+    "@types/d3-geo": "3.1.1",
+    "@types/d3-shape": "3.2.0",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@types/topojson-client": "3.1.5",
+    "@vitejs/plugin-react": "^6.1.1",
+    "oxlint": "^1.81.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0"
+  }
+}

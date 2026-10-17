@@ -31,6 +31,12 @@ test('an existing cookie decides the homepage design', () => {
   assert.deepEqual(logged, ['ab=B', 'ab=A']);
 });
 
+test('a folder URL serves that folder\'s index page', () => {
+  const { handler } = load('./viewer_request.js', { normalise: true });
+  assert.equal(handler(event({ uri: '/insights/' })).uri, '/insights/index.html');
+  assert.equal(handler(event({ uri: '/insights/data.json' })).uri, '/insights/data.json');
+});
+
 test('request and response functions assign a new visitor to the same group', () => {
   const req = load('./viewer_request.js', { normalise: true });
   const res = load('./viewer_response.js');

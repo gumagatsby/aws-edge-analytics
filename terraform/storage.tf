@@ -81,6 +81,22 @@ resource "aws_s3_object" "site" {
   content_type = lookup(local.content_types, reverse(split(".", each.value))[0], "application/octet-stream")
 }
 
+# The insights dashboard, built by `npm run build` in dashboard/. data.json is left out:
+# the pipeline's publish step owns it. Hashed assets never change, so they cache for a year.
+locals {
+  dashboard_dir = "${path.module}/../dashboard/dist"
+}
+
+resource "aws_s3_object" "dashboard" {
+  for_each      = setsubtract(fileset(local.dashboard_dir, "**"), ["data.json"])
+  bucket        = module.site.id
+  key           = "insights/${each.value}"
+  source        = "${local.dashboard_dir}/${each.value}"
+  etag          = filemd5("${local.dashboard_dir}/${each.value}")
+  content_type  = lookup(local.content_types, reverse(split(".", each.value))[0], "application/octet-stream")
+  cache_control = startswith(each.value, "assets/") ? "public, max-age=31536000, immutable" : "no-cache"
+}
+
 resource "aws_s3_object" "seeds" {
   for_each = fileset("${path.module}/../seeds", "*.csv")
   bucket   = module.artifacts.id

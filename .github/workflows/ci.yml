@@ -17,6 +17,22 @@ jobs:
           node-version: 24
       - run: node --test edge/edge.test.mjs
 
+  dashboard:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build   # type-checks first
+
   python:
     name: api, pipeline and Spark transforms
     runs-on: ubuntu-latest
