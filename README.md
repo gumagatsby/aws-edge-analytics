@@ -46,7 +46,7 @@ Everything is Terraform, deployed from a laptop and from GitHub Actions with OID
 
 ## Results
 
-Verified from the platform's own tables, on two kinds of traffic: real CloudFront traffic (served from Johannesburg and Lagos on build day) and a synthetic week of about 185,000 requests a day with answers planted in it.
+Verified from the platform's own tables, on two kinds of traffic: real CloudFront traffic (served from Johannesburg and Lagos from a laptop, and Chicago from GitHub's US runners) and a synthetic week of about 185,000 requests a day with answers planted in it.
 
 **Cache key normalisation works.** Homepage visits that arrive with tracking parameters (`utm_source`, `gclid`) each created a separate cache entry. Stripping them at the edge:
 
@@ -67,6 +67,7 @@ Verified from the platform's own tables, on two kinds of traffic: real CloudFron
 | N4 | Re-processing a day gives identical tables | Pass: 11 tables, row counts and checksums, two days re-run | [n4](docs/evidence/n4-rerun.txt) |
 | N5 | Failure alert within 15 minutes | Pass: 70 seconds, on a real failure | [n5](docs/evidence/n5-alert.txt) |
 | N7 | Origin reachable only through CloudFront | Pass: direct S3 and function URL return 403 | `scripts/verify.py n7` |
+| N8 | No long-lived AWS keys, including CI | Pass: GitHub Actions assumes a read-only role over OIDC, trusted only for this repository's immutable subject | [n8](docs/evidence/n8-oidc.txt) |
 
 ## Repository
 

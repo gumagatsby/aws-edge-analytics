@@ -146,3 +146,9 @@ Kept during the build, for the walkthrough. Each entry is what was seen, why it 
 - **Changed:** exact percentiles (nearest rank: sort the values, take the one at position ceil(p x n)). At this volume, at most about 185,000 values per group, the cost is negligible. The report tables for all eight days were rebuilt from the unchanged request table, then the N4 test was run again from a fresh snapshot.
 - **Lesson:** "re-runnable" means deterministic, not just "no duplicates". An approximate function quietly breaks that, and only a checksum comparison shows it.
 - **Second attempt found one more:** with exact percentiles, ten of eleven tables were identical, but the cost table's checksum flipped back to its earlier value. It summed per-edge decimal GB values from another report table, and decimal addition can round differently depending on order. It now totals whole bytes per pricing region from the request table, then multiplies by the price once. The test was repeated on two days (12 and 13 October), since a fault that shows only sometimes can pass a single re-run by luck.
+
+### CI could not assume its role: GitHub's subject format had changed
+- **Seen:** the first OIDC run failed with `Not authorized to perform sts:AssumeRoleWithWebIdentity`, although the trust policy named the repository correctly.
+- **Why:** GitHub now issues this repository's tokens with an immutable subject that includes the owner and repository IDs (`repo:owner@id/name@id:...`), not just the names the trust policy expected.
+- **Changed:** the trust policy matches the immutable subject. This is stricter than the old form: a renamed, deleted and re-created repository with the same name cannot assume the role. Moved the role ARN into a repository secret so the account ID does not appear on public run pages.
+- **Lesson:** read the token's actual claims (`gh api repos/OWNER/NAME/actions/oidc/customization/sub`) instead of assuming the documented default.

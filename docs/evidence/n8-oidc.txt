@@ -1,0 +1,9 @@
+N8 evidence: no long-lived AWS keys anywhere, including CI.
+GitHub Actions run 39031033581 (edge-runtime): "Assuming role with OIDC" succeeded; the read-only CI role
+ran the deployed viewer-request function in CloudFront's test runtime.
+Result: ok: /variants/b/index.html compute utilisation 9
+The repository holds no AWS keys: the CI role ARN is a repository secret, and the role's trust policy
+accepts only this repository's immutable OIDC subject (owner and repository IDs).
+
+US runner traffic (traffic workflow, run 39030854447): 3843 requests in 62 s, all 200,
+served from edge location ORD (Chicago).

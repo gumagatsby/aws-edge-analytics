@@ -10,10 +10,15 @@ variable "name" {
   default     = "edge-analytics"
 }
 
-variable "github_repo" {
-  description = "owner/name of the repository allowed to assume the CI role through OIDC."
+variable "github_oidc_subject" {
+  description = <<-EOT
+    Subject prefix of the repository allowed to assume the CI role through OIDC. GitHub
+    issues immutable subjects (owner and repository IDs), so a renamed or re-created
+    repository with the same name cannot assume the role. Read it with:
+    gh api repos/OWNER/NAME/actions/oidc/customization/sub --jq .sub_claim_prefix
+  EOT
   type        = string
-  default     = "gumagatsby/aws-edge-analytics"
+  default     = "repo:gumagatsby@266259364/aws-edge-analytics@1423275127"
 }
 
 variable "raw_retention_days" {
