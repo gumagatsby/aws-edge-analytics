@@ -298,7 +298,7 @@ for n, s_ in enumerate(["Campaign links: cache hits from 8% to 97.5% by strippin
                         "Re-running a day: 11 of 11 tables identical",
                         "Failure alert in 70 seconds"]):
     L.text(s_, 22, 410 + n * 22, 500, 20, fs=12)
-L.text("Everything in Terraform, with CI over OIDC and no stored AWS keys. Built, measured, then destroyed.", 22, 540, 500, 36, fs=12)
+L.text("Everything in Terraform, with CI over OIDC and no stored AWS keys.", 22, 540, 500, 36, fs=12)
 L.text("github.com/gumagatsby/aws-edge-analytics", 22, 646, 500, 18, fs=11, color=SUB)
 open(f"{OUTDIR}/linkedin-architecture.drawio", "w").write(L.xml())
 print("ok")
