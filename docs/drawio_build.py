@@ -222,7 +222,7 @@ d.edge(gh, oidc, "OIDC token", nx=0, ny=0.5)
 d.text("Legend", 30, 1046, 200, 20, fs=13, bold=True)
 d.text("Solid: data and requests.  Dashed grey: access.  Dashed red: failure path.  Dashed black: the pipeline publishes the dashboard data.",
        100, 1047, 1200, 20, fs=12, color=SUB)
-open(f"{OUTDIR}/architecture.drawio", "w").write(d.xml())
+# architecture.drawio is now edited directly in draw.io (AWS reference-architecture style), not generated here.
 
 # =====================================================================
 # 2. The daily pipeline (Step Functions)
