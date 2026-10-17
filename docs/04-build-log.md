@@ -135,3 +135,27 @@ Checkov passed locally with 186 checks and failed on the first push with 248 che
 The first OIDC run failed with `Not authorized to perform sts:AssumeRoleWithWebIdentity`, even though the trust policy named the repository correctly. GitHub now issues this repository's tokens with an immutable subject that includes the owner and repository IDs (`repo:owner@id/name@id:...`). The trust policy matches that form now, and it's stricter: a repository deleted and re-created under the same name can't assume the role. The role ARN moved into a repository secret so the account ID doesn't show on public run pages.
 
 `gh api repos/OWNER/NAME/actions/oidc/customization/sub` shows what a repository's tokens will actually say. I'd check it first next time.
+
+## The dashboard
+
+The first dashboard was a single HTML page that the publish step filled in. I rebuilt it as a small React app with charts from the Bklit UI registry, so the figures, the world map and the tables are easier to read. It's still a static page on the same distribution, and it still reads the `data.json` the pipeline publishes.
+
+### The component installer hung
+
+The shadcn command line tool, which copies registry components into a project, hung while resolving the registry and never finished. The registry is plain JSON, so I wrote a short script that reads each component's entry, writes its files and lists its dependencies. I installed those dependencies myself and pinned every version exactly.
+
+### The charts drew nothing
+
+The first build showed every chart as an empty box. The charts size themselves to their container, and a height class on a wrapper left them with no height to fill. Each chart now sits in a container with a set height.
+
+### `/insights/` returned 404
+
+CloudFront serves `index.html` only for the root of the site. A request for `/insights/` asked S3 for an object called `insights/`, which doesn't exist. The viewer-request function already rewrites the homepage for the A/B test, so it now also adds `index.html` to any other URL that ends in a slash. A test covers it, and the homepage rewrite is unchanged.
+
+### A fresh checkout couldn't build
+
+In development the page loads a sample of the report data, which isn't committed. The import was resolved at build time even though production never uses it, so a clean checkout failed the type check. CI would have failed on its first run. The sample is now loaded in a way that tolerates the file being missing, and I checked by building with the sample moved out of the way.
+
+### The test laptop showed up on the map
+
+The real traffic's world map is mostly one country: the one the load generator's laptop was in. That's an honest record of where the requests came from, and it says nothing about the retailer's customers. The real-traffic view now has a note under the map saying exactly that.

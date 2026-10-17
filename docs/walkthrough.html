@@ -1,0 +1,157 @@
+<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><title>Walkthrough: Edge analytics on AWS</title>
+<style>
+@page{size:A4;margin:16mm 16mm 18mm}
+body{font:10.2pt/1.5 "Helvetica Neue",Helvetica,Arial,sans-serif;color:#16191f;margin:0}
+h1{font-size:21pt;margin:0 0 2px;color:#16191f}
+.sub{color:#4a5260;margin:0 0 14px}
+h2{font-size:14pt;color:#16191f;margin:22px 0 6px;break-after:avoid}
+h3{font-size:11pt;margin:12px 0 4px;break-after:avoid}
+p{margin:4px 0}
+ul,ol{margin:4px 0;padding-left:18px}li{margin:2px 0}
+code{font:9pt/1.4 Menlo,monospace;background:#eef1f5;padding:1px 4px;border-radius:3px}
+table{border-collapse:collapse;width:100%;margin:6px 0;font-size:9.4pt}
+tr{break-inside:avoid}
+th,td{border:1px solid #d3d9e2;padding:4px 6px;text-align:left;vertical-align:top}
+th{background:#eef1f5}
+.q{font-weight:700;margin-top:10px}
+.a{margin:2px 0 6px}
+img{break-inside:avoid;box-sizing:border-box;width:100%;border:1px solid #dde2ea;border-radius:4px;margin:6px 0}
+.page{break-before:page}
+</style></head>
+<body>
+
+<h1>Edge analytics on AWS</h1>
+<p class="sub">How it works, why it was built this way, everything that went wrong on the way, and how to talk about it in an interview.<br>Repo: github.com/gumagatsby/aws-edge-analytics</p>
+
+<img src="architecture.png" alt="Architecture diagram">
+
+<h3>In one sentence</h3>
+<p>I built a platform that turns a CDN's access logs into answers a business can act on (what the CDN costs by region, where the site is slow, whether a redesign sells more, how much traffic is bots) while removing visitors' IP addresses, and I proved the answers right by planting known ones in 1.3 million synthetic log lines and checking the platform found every one.</p>
+
+<h2>Part 1. What it is</h2>
+<p>The client is a fictional UK online retailer with a static site and a small API behind CloudFront. CloudFront logs every request and nobody reads the logs. The brief listed five problems: a rising CDN bill, complaints that the site is slow in some countries, a homepage redesign nobody can evaluate, inflated traffic figures, and IP addresses kept forever. The team knows SQL, has little Python and won't run servers. The account is on the AWS Free plan and the build budget is $10.</p>
+<table><tr><th>Piece</th><th>Technology</th><th>Job</th></tr>
+<tr><td>Edge</td><td>CloudFront, two CloudFront Functions</td><td>Assigns each visitor to design A or B, strips tracking parameters before the cache lookup, writes the group into the log line</td></tr>
+<tr><td>Origins</td><td>S3 (site), Lambda function URL (API)</td><td>Reachable only through CloudFront, using origin access control</td></tr>
+<tr><td>Log delivery</td><td>CloudFront standard logging v2</td><td>Delivers every request to a raw bucket in London, encrypted, deleted after 7 days</td></tr>
+<tr><td>Processing</td><td>Glue 5.0 Spark job, Glue Data Quality</td><td>Parses 33 fields, quarantines bad lines, masks IPs, hashes visitors, classifies bots</td></tr>
+<tr><td>Model and reports</td><td>Athena SQL over Iceberg tables</td><td>A star schema and 7 report tables, rebuilt one day at a time</td></tr>
+<tr><td>Orchestration</td><td>Step Functions, EventBridge Scheduler</td><td>Runs the day at 05:00 UTC, alerts on any failure</td></tr>
+<tr><td>Access control</td><td>Lake Formation, per-role Athena workgroups</td><td>Analysts never see visitor identifiers</td></tr>
+<tr><td>Dashboard</td><td>React, Vite, Bklit UI charts</td><td>Served at <code>/insights/</code> on the same distribution</td></tr>
+<tr><td>Delivery</td><td>Terraform, GitHub Actions over OIDC, Checkov</td><td>Everything is code; CI has no stored AWS keys</td></tr></table>
+
+<h3>Choices that shaped it</h3>
+<ul>
+<li>Kinesis, Firehose and Lambda@Edge aren't available on the Free plan. I found that on day one by trying them, before designing anything. So logs arrive as files and are processed daily, which still meets the 06:00 deadline, and all edge logic is CloudFront Functions.</li>
+<li>Managed Airflow costs about $244 a month even when idle, which is the whole budget in about 30 hours. Step Functions charges per state transition, so it costs almost nothing.</li>
+<li>Only one step is Python: the Glue job, because keyed hashing with a secret and quarantining bad lines are awkward in SQL, and the secret would end up in query text. Everything the client's team changes day to day is SQL. There's no dbt either: the models are few enough for plain SQL.</li>
+</ul>
+
+<h2>Part 2. How a day is processed</h2>
+<img src="pipeline-flow.png" alt="The daily pipeline">
+<h3>Replace the whole day, every time</h3>
+<p>Each step deletes the day it is about to write and inserts it again. Iceberg tables support <code>DELETE</code>, so a re-run, a backfill or a fix replaces a day cleanly instead of adding duplicates. I tested it by taking a row count and checksum of all 11 tables, re-running a day, and comparing: identical, on two different days.</p>
+<h3>Every row accounted for</h3>
+<p>The Glue job writes each line to the clean table or to a quarantine table with the reason, and fails unless raw = clean + quarantined. After the SQL steps, a reconcile step checks clean = fact = report rows. A run that loses or invents a row stops, and the alert arrives within minutes.</p>
+<h3>Answers you can check</h3>
+<p>The site has no real customers, so I used two kinds of traffic. Real traffic from a laptop and from GitHub's US runners produces genuine CloudFront logs, which proves the parser. A synthetic week in CloudFront's exact format, with answers planted in it (a bot share, a broken link, an outage in Singapore, a 0.6 point conversion lift for design B), proves the reports. The platform found every planted answer.</p>
+
+<h2>Part 3. Visitors' IP addresses</h2>
+<ul>
+<li>Raw logs keep full IP addresses, as CloudFront delivers them, and an S3 lifecycle rule deletes them after 7 days.</li>
+<li>After the raw layer, the address is truncated to its network (/24 for IPv4, /48 for IPv6). Visitors are counted with an HMAC of the IP and user agent, keyed with a secret in Parameter Store, so the identifier can't be reversed without the key.</li>
+<li>The ICO treats pseudonymised data as personal data, so hashing isn't enough on its own. Lake Formation column grants stop analysts selecting <code>visitor_id</code> at all.</li>
+<li>Athena writes every query's results to S3. With one shared results folder, an analyst could have opened an engineer's results and read the column Lake Formation hid. Each role now has its own workgroup and results prefix, and a test proves the analyst can't open the engineer's results.</li>
+<li>The proof: every text column in the clean and curated layers (85 of them) was compared against all 96,661 real addresses in the raw layer. None appeared.</li>
+</ul>
+
+<h2>Part 4. What it found</h2>
+<table><tr><th>Question</th><th>Answer (synthetic week)</th><th>Recommendation</th></tr>
+<tr><td>What does the CDN cost?</td><td>$10.74 for 114.4 GB at list price. Price class 100 would save 9.4% but serve 32% of bytes from further away.</td><td>Keep all edge locations: the saving is about $1 a week, and it lands on the visitors who are already slowest.</td></tr>
+<tr><td>Where is the site slow?</td><td>Cache hits take about 10 ms everywhere. Misses go back to London: 38 ms in London and Manchester, 325 ms in Auckland. Real traffic shows the same: 330 ms on a miss in Lagos, 2 to 3 ms on a hit.</td><td>Trial longer cache lifetimes on product pages, measured on this dashboard.</td></tr>
+<tr><td>Did the redesign work?</td><td>B converts at 3.52% against 2.89%: 0.63 points better, 95% interval 0.39 to 0.87. Planted: 0.60.</td><td>Ship B, keep a small holdout on A.</td></tr>
+<tr><td>How much is bots?</td><td>12.0%, found to within 0.005 points of the planted share every day, including a scraper posing as a browser.</td><td>AWS WAF Bot Control in production.</td></tr>
+<tr><td>Campaign links</td><td>Tracking parameters made each link its own cache entry. Stripping them at the edge took those requests from 8.0% to 97.5% cache hits; on real traffic, 1 of 99 to 99 of 99.</td><td>Keep it on.</td></tr></table>
+<p>Every client error in the week came from one broken link, <code>/products/13.html</code>, and every server error was the planted Singapore incident: 245 502s on 13 October, found exactly. The full results, with the real-traffic figures, are in <code>docs/03-results.md</code>.</p>
+<p>The dashboard, served by the same distribution it reports on:</p>
+<img src="dashboard.png" alt="The insights dashboard, synthetic week">
+
+<h2>Part 5. Proof</h2>
+<table><tr><th></th><th>Requirement</th><th>Result</th></tr>
+<tr><td>N1</td><td>No raw IP beyond the raw layer; raw logs deleted after 7 days</td><td>Pass: 85 columns, 96,661 addresses, 0 matches; 7-day expiry rule</td></tr>
+<tr><td>N2</td><td>Analysts see aggregates only</td><td>Pass, 8 checks, including the engineer's query results</td></tr>
+<tr><td>N3</td><td>Raw = clean + quarantined, every run</td><td>Pass on every day and source</td></tr>
+<tr><td>N4</td><td>Re-processing a day gives identical results</td><td>Pass: 11 tables, rows and checksums, two days re-run</td></tr>
+<tr><td>N5</td><td>Alert within 15 minutes of a failure</td><td>Pass: 70 seconds, on a real failure</td></tr>
+<tr><td>N6</td><td>Data stays in eu-west-2</td><td>Pass: all 5 buckets in eu-west-2</td></tr>
+<tr><td>N7</td><td>Origin only through CloudFront</td><td>Pass: direct S3 and function URL return 403</td></tr>
+<tr><td>N8</td><td>No long-lived AWS keys, including CI</td><td>Pass: OIDC, trusted only for this repository's immutable subject</td></tr>
+<tr><td>N9, N10</td><td>Destroyed completely; under $10</td><td>Recorded after teardown in <code>docs/03-results.md</code></td></tr></table>
+
+<h2>Part 6. Everything that went wrong, and how I got past it</h2>
+<p>All of these happened on this build. The full story of each is in <code>docs/04-build-log.md</code>.</p>
+<h3>Before building</h3>
+<table><tr><th>Problem</th><th>Cause</th><th>What I did</th></tr>
+<tr><td>Kinesis and Firehose returned <code>SubscriptionRequiredException</code>; Lambda@Edge unavailable</td><td>The account's Free plan</td><td>Standard logging v2 to S3, processed daily; all edge logic in CloudFront Functions. Found on day one by testing first.</td></tr>
+<tr><td>Couldn't reserve Lambda concurrency</td><td>The account quota is 10, and AWS keeps 10 unreserved</td><td>One day at a time in Step Functions; traffic generators capped at 6 workers; the Checkov skip says why</td></tr>
+<tr><td>The two edge functions can't share state</td><td>CloudFront Functions keep nothing between request and response</td><td>Both compute the A/B group from the same hash of IP and user agent</td></tr>
+<tr><td>Three spike problems: CLI shorthand rejected, lost Terraform state for an origin access control, a pricing script <code>KeyError</code></td><td>CLI parsing; state drift; non-USD price entries</td><td>JSON input; re-imported the resource; skip non-USD prices</td></tr></table>
+<h3>Building</h3>
+<table><tr><th>Problem</th><th>Cause</th><th>What I did</th></tr>
+<tr><td>The test data generator needed Spark</td><td>It imported the field list from the Spark module</td><td>Field list moved to its own module</td></tr>
+<tr><td>Rows on the wrong day, stale quarantine rows after a re-run, failures misreported</td><td>Three bugs in the Glue job</td><td>Fixed; a re-run now replaces the day in both tables</td></tr>
+<tr><td>Lake Formation rejected the column exclusion</td><td>It needs <code>wildcard = true</code> with <code>excluded_column_names</code></td><td>Added it</td></tr>
+<tr><td>The project's cost tag didn't appear in Cost Explorer</td><td>Cost allocation tags must be activated in Billing</td><td>Activated, so the build's cost can be measured</td></tr>
+<tr><td>Checkov findings across the Terraform; CI would have ignored every skip</td><td>Real gaps, some false positives; the config path was wrong in CI</td><td>Fixed the gaps, justified each skip, fixed the path</td></tr></table>
+<h3>Deploying</h3>
+<table><tr><th>Problem</th><th>Cause</th><th>What I did</th></tr>
+<tr><td><code>Invalid placeholder in string</code> on the first deploy</td><td>A SQL comment contained <code>${...}</code>, and placeholders were filled before comments were removed</td><td>Strip comments first; render all SQL locally before deploying</td></tr>
+<tr><td>Access denied on the first Iceberg table</td><td>IAM changes take seconds to spread; Terraform didn't wait</td><td>Proved it with CloudTrail and a manual retry; added a 20-second wait</td></tr>
+<tr><td>A Terraform diff that never cleared</td><td>The account's <code>IAM_ALLOWED_PRINCIPALS</code> default grant, which also let any Glue user bypass Lake Formation</td><td>Revoked it for this database only. Fixed a shell precedence bug in my first revoke command. Didn't hide the diff with <code>ignore_changes</code>.</td></tr>
+<tr><td>Missing pages returned 403, hiding broken links</td><td>S3 answers 403 when the caller can't list the bucket</td><td>CloudFront may list the site bucket, so missing pages are real 404s; direct access is still 403</td></tr>
+<tr><td>Spark tests failed on the laptop</td><td>No Java; worker and driver Python differed; local time zone on <code>collect()</code></td><td>Java 17 as in CI; workers pinned to the test's Python; UTC</td></tr></table>
+<h3>Running it</h3>
+<table><tr><th>Problem</th><th>Cause</th><th>What I did</th></tr>
+<tr><td>The laptop's traffic went through a different edge location each day</td><td>CloudFront picks the best edge at that moment</td><td>Reports use only the edge recorded in each log line</td></tr>
+<tr><td>The first backfill stopped on its own privacy check</td><td><code>Chrome/131.0.0.0</code> looks like an IPv4 address</td><td>The check now flags a row only if a kept column contains that request's own IP. The failure also proved the alert: 70 seconds.</td></tr>
+<tr><td>Analysts could have read the engineer's query results</td><td>One shared Athena workgroup and results folder</td><td>A workgroup and results prefix per role, and a test for it</td></tr>
+<tr><td>Rejected lines would have kept IPv6 addresses</td><td>The mask only matched IPv4</td><td>Masks the line's own address, then any IPv4 or IPv6 shape; nothing had leaked</td></tr>
+<tr><td>The privacy scan flagged 330 values</td><td>A network address ending in <code>.0</code> equals itself as a host</td><td>That column is checked for network form instead; removed a silent <code>LIMIT</code></td></tr>
+<tr><td>Two planted answers missed</td><td>My comparison: bytes truth was humans only; two sessions shared an IP and user agent</td><td>Compared like with like; the generator records distinct visitors. No tolerance loosened.</td></tr>
+<tr><td>A re-run changed two tables, then one</td><td><code>approx_percentile</code> isn't deterministic; decimal sums depend on order</td><td>Exact percentiles; cost from whole bytes, priced once. Two days re-run, both identical.</td></tr></table>
+<h3>Publishing and the dashboard</h3>
+<table><tr><th>Problem</th><th>Cause</th><th>What I did</th></tr>
+<tr><td>Checkov passed locally, failed in CI with 23 failures</td><td>CI pulled a newer Checkov with new checks</td><td>Went through each; two conflict with the brief (replication leaves eu-west-2; versioning keeps IPs past 7 days). Same version locally now.</td></tr>
+<tr><td>CI couldn't assume its AWS role</td><td>GitHub now issues an immutable subject with owner and repository IDs</td><td>Trust policy matches it, which is stricter; role ARN moved to a secret</td></tr>
+<tr><td>The component installer hung</td><td>The shadcn tool stalled resolving the registry</td><td>A short script reads the registry JSON and writes the files; versions pinned</td></tr>
+<tr><td>Charts drew nothing</td><td>A wrapper left them no height to fill</td><td>Each chart has a container with a set height</td></tr>
+<tr><td><code>/insights/</code> returned 404</td><td>CloudFront serves <code>index.html</code> only at the root</td><td>The edge function adds <code>index.html</code> to folder URLs, with a test</td></tr>
+<tr><td>A fresh checkout couldn't build the dashboard</td><td>A development-only sample file, not committed, was still resolved at build time</td><td>Loaded so it can be missing; built without it to check</td></tr></table>
+
+<h2>Interview questions</h2>
+<p class="q">"Why not stream the logs in real time?"</p>
+<p class="a">The account couldn't: Kinesis isn't on its plan. The brief didn't need it either: the data has to be ready by 06:00 for the previous day. A daily batch from S3 meets that with no delivery charge and nothing running between runs. On a paid account I'd add real-time logs only for a question that needs minutes, like spotting an outage.</p>
+<p class="q">"How do you know the numbers are right?"</p>
+<p class="a">Two ways. Every run accounts for every row from raw to report, or it fails. And the synthetic week has known answers planted in it, so I could check the platform against the truth: every request, every bot, every broken link, every 502, the bytes by country and the experiment effect. When two answers missed, the fault was in my comparison, and I proved that before changing the test.</p>
+<p class="q">"How is re-running a day safe?"</p>
+<p class="a">Every step replaces the whole day. And the SQL has to be deterministic, which I learned from the test: <code>approx_percentile</code> and decimal sums gave slightly different results on re-runs. Exact percentiles and integer byte totals fixed it, proved by checksums on all 11 tables for two days.</p>
+<p class="q">"How do analysts not see visitor identifiers?"</p>
+<p class="a">Lake Formation column grants, plus a loophole most people miss: Athena writes query results to S3, so a shared results folder leaks whatever an engineer queried. Each role has its own workgroup and results prefix. I also revoked the account's default grant that lets any Glue user bypass Lake Formation, for this database only.</p>
+<p class="q">"Why Glue for one step and SQL for everything else?"</p>
+<p class="a">The client's team knows SQL, so everything they maintain is SQL. The one step that handles personal data needs a secret key, quarantine with reasons and user-agent parsing, which is awkward and leaky in SQL. At this volume Athena alone would be cheaper; I chose Glue for the privacy requirements, not for scale.</p>
+<p class="q">"What would you change for production?"</p>
+<p class="a">AWS WAF Bot Control to stop bots rather than just count them. A raised Lambda quota so the pipeline can reserve concurrency. Raw logs in a separate account that only the Glue job can read. And a longer experiment on real customers with a holdout, before trusting the lift.</p>
+
+<h2>Checks done (17 October 2026)</h2>
+<table><tr><th>Check</th><th>Result</th></tr>
+<tr><td>Edge function tests</td><td>7 of 7 pass</td></tr>
+<tr><td>API and pipeline tests</td><td>2 and 5 pass</td></tr>
+<tr><td>Spark transform tests (real Spark, Java 17)</td><td>13 pass</td></tr>
+<tr><td>Checkov on the Terraform</td><td>248 passed, 0 failed</td></tr>
+<tr><td>Dashboard lint and type-checked build</td><td>Pass</td></tr>
+<tr><td>Planted answers recovered</td><td>All, every day (<code>scripts/check_truth.py</code>)</td></tr>
+<tr><td>Requirements N1 to N8</td><td>All pass (<code>scripts/verify.py</code>)</td></tr>
+<tr><td>GitHub Actions CI</td><td>All 5 jobs green</td></tr></table>
+
+</body></html>

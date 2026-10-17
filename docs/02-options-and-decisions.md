@@ -141,6 +141,8 @@ The HMAC key is held in AWS Systems Manager Parameter Store as a standard Secure
 
 **Decision:** static page.
 
+**Changed during the build:** the page is now a small React app with charts from the Bklit UI registry, built with Vite. It is still static: Terraform uploads the build to `insights/`, and the page reads the `data.json` the pipeline publishes next to it.
+
 ### D12. Bot classification
 
 **Decision:** rules in the Glue job: known crawler user agents, missing or scripted user agents, request rate per truncated network, and absence of page assets. Recorded as `human`, `known_bot` or `suspected_bot`. AWS WAF Bot Control is the production recommendation and is out of scope.

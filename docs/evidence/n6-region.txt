@@ -1,0 +1,10 @@
+N6 evidence: data stays in eu-west-2 once it lands. Checked 2026-10-17 with s3api get-bucket-location.
+edge-analytics-artifacts-<account-id>  eu-west-2
+edge-analytics-athena-<account-id>     eu-west-2
+edge-analytics-lake-<account-id>       eu-west-2
+edge-analytics-raw-<account-id>        eu-west-2
+edge-analytics-site-<account-id>       eu-west-2
+The only resources outside eu-west-2 are the CloudFront log delivery source, destination and delivery
+(terraform/logging.tf), which CloudWatch Logs requires in us-east-1. They hold configuration, not data:
+logs are delivered straight to the raw bucket in eu-west-2. Glue, Athena, Lake Formation, Step Functions,
+the Glue Data Catalog and the KMS key are all in the eu-west-2 provider.
