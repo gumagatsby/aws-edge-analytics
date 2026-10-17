@@ -67,7 +67,7 @@ Access to clean and curated tables: Lake Formation (column-level)
 | Lambda per log file | Partial | Fine for small files; no built-in data-quality rules; harder to re-process a whole day. |
 | Amazon EMR Serverless | Not available | Amazon EMR is listed for the Paid plan only. |
 
-**Decision:** one Glue Spark job, written and tested by the platform team. It is the only Python component; everything the client's team changes day to day (the model and reports) is SQL, in line with the constraint. At this volume Athena alone would be cheaper; Glue is chosen for the pseudonymisation and quarantine requirements (N1, N3), not for scale.
+**Decision:** one Glue Spark job, written and tested by the platform team. It is the only Python component; everything the client's team changes day to day (the model and reports) is SQL, in line with the constraint. At this volume Athena alone would be cheaper; Glue is chosen for the pseudonymisation and quarantine requirements (N1, N3). Volume alone would never justify it.
 
 ### D5. Data quality
 
@@ -170,7 +170,7 @@ Run with the AWS CLI on throwaway resources tagged `edge-spike`, then deleted. A
 | Origin Access Control for S3 and for a Lambda function URL | **Pass.** Through CloudFront: site 200, API 200. Direct to S3: 403. Direct to the function URL: 403 |
 | Parameter Store standard parameters | **No charge** (Pricing API lists charges for advanced parameters only) |
 | Glue Spark job (Glue 5.0, 2 workers) | **Pass.** 84 seconds, 168 DPU-seconds, about $0.02 |
-| Athena with Iceberg: create, insert, delete a day, re-insert, query | **Pass.** The re-processed day totalled 27, not 52, so replacing a day does not duplicate it |
+| Athena with Iceberg: create, insert, delete a day, re-insert, query | **Pass.** The re-processed day totalled 27 rows. A duplicate would have made 52 |
 
 Requests from the developer's laptop were served by the Tel Aviv edge location (`TLV55`) on this day. On build day the same laptop was served from Johannesburg (`JNB51`) and Lagos (`LOS`), so test traffic is always described by the edge location recorded in the log, never by assumption.
 

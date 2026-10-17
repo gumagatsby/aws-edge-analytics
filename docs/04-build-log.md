@@ -1,154 +1,137 @@
-# Build log: problems met and how they were solved
+# Build log
 
-Kept during the build, for the walkthrough. Each entry is what was seen, why it happened, what was changed, and what it teaches. Nothing here is hypothetical: every entry happened on this build.
+Everything that went wrong while building this, in the order it happened, and what I did about it. All of it happened on this build. Some of it was AWS, some of it was my own code, and a few were the tests themselves.
 
-## Platform limits found before building
+## Before building
 
-### Free plan rules out streaming and Lambda@Edge
-- **Seen:** Kinesis Data Streams and Firehose calls returned `SubscriptionRequiredException`; Lambda@Edge is not supported on the plan.
-- **Why:** the account is on the AWS Free plan.
-- **Changed:** real-time logs dropped in favour of CloudFront standard logging (v2) to S3, processed daily. All edge logic written as CloudFront Functions.
-- **Lesson:** check account-level service availability on day one, before the design depends on a service.
+### The Free plan ruled out streaming and Lambda@Edge
 
-### Lambda concurrency limit of 10
-- **Seen:** reserved concurrency could not be set on any function.
-- **Why:** this account's Lambda concurrency quota is 10, and AWS requires 10 to stay unreserved, so nothing can be reserved.
-- **Changed:** no reserved concurrency; the Step Functions Map runs one day at a time (MaxConcurrency 1); the local traffic generator is limited to 6 workers. Checkov's reserved-concurrency check (CKV_AWS_115) is skipped with this reason recorded.
-- **Lesson:** new accounts have lower quotas than the documentation defaults. Read Service Quotas, not the docs page.
+Kinesis Data Streams and Firehose both returned `SubscriptionRequiredException`, and Lambda@Edge isn't available on the plan at all. So real-time logs were off the table. I switched to CloudFront standard logging (v2) into S3, processed once a day, which still meets the 06:00 deadline in the brief. All the edge logic became CloudFront Functions.
 
-### Edge functions cannot pass data from request to response
-- **Seen:** the viewer-response function could not read a header added by the viewer-request function.
-- **Why:** CloudFront Functions do not share state between the two events.
-- **Changed:** the A/B group is a deterministic hash (FNV-1a of IP and user agent), computed the same way in both functions, so both reach the same answer independently.
-- **Lesson:** when two stateless components need to agree, make them compute the same deterministic result rather than pass messages.
+I found this on day one because I tried the services before designing around them. Finding it after the design was settled would have been far more expensive.
 
-## Day-one checks (spike)
+### Lambda concurrency is capped at 10
 
-### CLI shorthand rejected the log delivery path setting
-- **Seen:** creating the log delivery configuration failed when `suffixPath` was passed in CLI shorthand.
-- **Changed:** passed the setting as JSON.
+I couldn't set reserved concurrency on any function. This account's Lambda quota is 10, and AWS insists that 10 stay unreserved, so there's nothing left to reserve. New accounts get lower quotas than the documentation suggests.
 
-### Terraform state lost track of an Origin Access Control
-- **Seen:** during the spike, state no longer held the S3 Origin Access Control.
-- **Changed:** recovered its ID from the CloudFront distribution and brought it back under management, then tore the spike down cleanly.
-- **Lesson:** the deployed resource is the source of truth; state can be rebuilt from it.
+The Step Functions Map processes one day at a time, and the traffic generators run 6 workers so the API stays under the limit. Checkov's reserved-concurrency check is skipped with this reason written next to it.
 
-### Price list contained non-USD entries
-- **Seen:** the pricing script failed with a `KeyError` on some CloudFront price entries.
-- **Why:** not every entry in the AWS Price List API is priced in USD.
-- **Changed:** non-USD entries are skipped.
+### The two edge functions can't share anything
+
+The viewer-response function can't see a header that the viewer-request function added. CloudFront Functions keep no state between the two events. To keep a visitor in the same A/B group, both functions compute the group from the same input, an FNV-1a hash of the IP and user agent, and so both get the same answer without talking to each other.
+
+## Day-one spike
+
+Three small ones. The AWS CLI rejected the log delivery `suffixPath` setting in shorthand syntax, so I passed it as JSON. Terraform state lost track of the S3 Origin Access Control partway through; I took its ID from the distribution and brought it back under management before tearing the spike down. And the pricing script crashed with a `KeyError` because some entries in the AWS Price List API aren't priced in USD. It skips those now.
 
 ## Main build
 
-### Test data generator pulled in Spark
-- **Seen:** the synthetic log generator, which should need only the standard library, failed to import without PySpark.
-- **Why:** it imported the field list from the Glue transform module, which imports PySpark.
-- **Changed:** the 33-field list moved to its own module (`glue/edge_etl/fields.py`), shared by both.
+### The test data generator pulled in Spark
 
-### Glue job: day assignment, quarantine re-runs and exit handling
-- **Seen:** rows were assigned to the wrong day, a re-run left stale quarantine rows, and the job's exit handling misreported failures.
-- **Changed:** all three fixed in `glue/process_logs.py`; a re-run now overwrites the day's partitions in both the clean and quarantine tables (N4).
+The synthetic log generator should only need the standard library, but it wouldn't import without PySpark. It took the field list from the Glue transform module, which imports Spark at the top. The 33 field names now live in their own module, `glue/edge_etl/fields.py`, and both use it.
 
-### Lake Formation column filter needed a wildcard
-- **Seen:** the analyst grant that excludes `visitor_id` was rejected.
-- **Changed:** `table_with_columns` needs `wildcard = true` alongside `excluded_column_names`.
+### Three bugs in the Glue job
 
-### Cost tag not active
-- **Seen:** the `Project` tag did not appear in Cost Explorer.
-- **Why:** cost allocation tags must be activated in Billing before they are reported.
-- **Changed:** activated it, so the build's cost can be measured on its own (N10).
+Rows were landing on the wrong day, a re-run left the previous run's quarantined rows behind, and the exit handling misreported failures. All three are fixed in `glue/process_logs.py`. A re-run now replaces the whole day in the clean table and clears the day in the quarantine table first (N4).
 
-### Security scan: every finding fixed or justified
-- **Seen:** Checkov reported failures across the Terraform.
-- **Changed:** real gaps fixed (KMS encryption on logs and the alert topic, a Glue security configuration, tracing on the pipeline). The rest are skipped in `terraform/.checkov.yml`, each with its reason (for example WAF, which is outside the budget). Five remaining failures were false positives: the bucket module has the abort-multipart lifecycle rule, but Checkov cannot see it through the module. Result: 182 passed, 0 failed.
-- **Also found:** the CI step pointed at the config file relative to the wrong folder, so CI would have ignored every skip. Fixed to `terraform/.checkov.yml`.
-- **Lesson:** a skip list is only honest if every skip has a written reason.
+### Smaller fixes
 
-### CI ran a newer scanner than the laptop
-- **Seen:** the security scan passed locally (186 checks) and failed on the first push (248 checks, 23 failures). CI pulls the latest Checkov image (3.3.29); the laptop had 3.3.20, which lacked several checks.
-- **Changed:** each new finding was judged on its merits and every skip has its reason in `terraform/.checkov.yml`. Two are skips because the check conflicts with the brief: cross-region replication would move data out of eu-west-2 (N6), and versioning on the raw bucket would keep deleted logs, with IP addresses, past the 7 days N1 allows. The local scanner was matched to CI's version: 248 passed, 0 failed.
-- **Lesson:** pin or match tool versions between laptop and CI, or the first push is the first real scan. And a scanner's rule is generic; the brief decides which rules apply.
+The Lake Formation grant that hides `visitor_id` from analysts was rejected until I added `wildcard = true` next to `excluded_column_names`. The `Project` cost tag didn't show in Cost Explorer because cost allocation tags have to be activated in Billing first. I activated it so the build's cost can be measured on its own (N10).
 
-### First deploy failed: a placeholder inside a comment
-- **Seen:** the deploy-time step that creates the curated tables failed with `Invalid placeholder in string`.
-- **Why:** the SQL files use `${name}` placeholders, and a comment explaining them contained `${...}`. The renderer substituted before removing comments.
-- **Changed:** comments are removed first, then placeholders are filled. All three SQL files are now rendered in a local check before deploying.
+### The security scan
 
-### Second deploy failed: IAM not yet visible to Athena
-- **Seen:** `Access to the specified S3 resource is denied` on the first Iceberg table, even after S3 write access was added to the pipeline role.
-- **Diagnosis:** the bucket policy and KMS key policy were correct. CloudTrail showed no Lake Formation credential request and no KMS denial, so Athena was using the role's own credentials. Invoking the same step by hand a minute later succeeded: all 22 statements ran.
-- **Why:** IAM changes take a few seconds to reach other services, and Terraform invoked the step immediately after attaching the policy.
-- **Changed:** a 20-second wait (`time_sleep`) between the policy and the step, so a fresh deploy does not race.
-- **Lesson:** "access denied" straight after a policy change is often propagation, not a wrong policy. Prove it by retrying before rewriting the policy.
+Checkov flagged a range of things across the Terraform. Some were real gaps and I fixed them: KMS encryption on the log groups and the alert topic, a Glue security configuration, tracing on the pipeline function. The rest are skipped in `terraform/.checkov.yml`, each with the reason beside it. WAF, for example, costs at least $5 a month per web ACL, which doesn't fit a $10 budget. Five failures were false positives: the bucket module does have the abort-multipart lifecycle rule, and Checkov can't see it through the module.
 
-### Permanent Terraform diff on Lake Formation grants, and a governance gap behind it
-- **Seen:** every plan wanted to replace the three database grants, because AWS reported `ALL` on a role that had only been given `DESCRIBE`.
-- **Diagnosis:** listing grants for the database showed the analyst with `DESCRIBE` only. Listing grants filtered to the analyst returned `ALL, DESCRIBE`: AWS folds the database's `IAM_ALLOWED_PRINCIPALS` grant into each role's result.
-- **The real problem underneath:** that `IAM_ALLOWED_PRINCIPALS ALL` grant (the account default for new databases) meant any role with Glue IAM permissions could create tables in the curated database without Lake Formation.
-- **Changed:** the grant is revoked for the curated database only, inside Terraform. The account-wide default is untouched, so other projects in the account are unaffected. The pipeline still builds every table, and the plan now shows no changes.
-- **Also:** the first version of that revoke command had a shell precedence mistake (`a || b && exit 1` exits even when `a` succeeds). Rewritten so it succeeds if the grant is removed now or was already gone.
-- **Lesson:** a diff that never goes away is worth investigating, not suppressing with `ignore_changes`. This one hid a real access gap.
+Then I noticed the CI job pointed at the config file from the wrong folder. CI would have ignored every skip and failed. Fixed.
 
-### Missing pages returned 403, not 404
-- **Seen:** a request for a page that does not exist returned 403 through CloudFront.
-- **Why:** S3 answers a missing object with 403 when the caller is not allowed to list the bucket. That would have hidden broken links from the error report (F6).
-- **Changed:** CloudFront (and only this distribution) may list the site bucket, so missing pages are true 404s. Direct access to the bucket still returns 403 (N7).
+## Deploying
 
-### Spark tests would not run on a laptop
-- **Seen:** first no Java runtime; then `PYTHON_VERSION_MISMATCH` (Spark workers used Python 3.15, the driver 3.11); then one timestamp two hours out.
-- **Why:** Spark's workers pick up the system Python unless told otherwise; and `collect()` converts timestamps to the local timezone of the machine, even when the Spark session is set to UTC.
-- **Changed:** Java 17 installed to match CI; the test setup pins the workers to the test's own Python and runs in UTC, as Glue does. 12 of 12 pass.
-- **Lesson:** a test that passes in CI and fails on a laptop is usually the environment. Make the test set its own environment.
+### First deploy: a placeholder inside a comment
 
-### Real traffic did not come from the expected edge location
-- **Seen:** on the day-one checks the laptop was served from Tel Aviv (TLV55). On build day the same laptop was served from Johannesburg (JNB51), with a few requests through Lagos (LOS).
-- **Why:** CloudFront routes each request to the edge location with the best latency at that moment, and that changes.
-- **Changed:** the reports use the edge location recorded in each log line, never an assumption.
+The step that creates the curated tables at deploy time failed with `Invalid placeholder in string`. The SQL files use `${name}` placeholders, and a comment explaining them contained the text `${...}`. My renderer filled placeholders before stripping comments. It strips comments first now, and I render all three SQL files locally before deploying.
 
-### First backfill stopped by its own privacy check
-- **Seen:** the first run of the backfill failed on day one. A data quality rule, "no IP-shaped text in the user agent", found matches.
-- **Why:** the rule was wrong, not the data. Ordinary browser user agents contain version numbers such as `Chrome/131.0.0.0`, which look exactly like an IPv4 address.
-- **Changed:** the check now asks the precise question. While the raw address is still known, each row is flagged if any kept text column (user agent, path, referrer, query parameter names) contains that request's own IP, and the rule requires zero flagged rows. A test covers both cases: a browser version is not flagged; an IP in a path or referrer is.
-- **Good news inside the failure:** the safety net worked as designed. Nothing was written, Step Functions caught the error, and the failure alarm reached the alerts queue 70 seconds after the run stopped (N5 requires 15 minutes).
-- **Lesson:** a pattern match is a proxy for the question you mean. Where the real value is available, check against it.
+### Second deploy: IAM hadn't reached Athena yet
+
+`Access to the specified S3 resource is denied` on the first Iceberg table, even after I gave the pipeline role write access to the curated folder. The bucket policy and the KMS key policy were both fine. CloudTrail showed no Lake Formation credential request and no KMS denial, so Athena was using the role's own credentials, as expected. I ran the same step by hand a minute later and all 22 statements went through.
+
+IAM changes take a few seconds to spread, and Terraform ran the step the moment the policy was attached. There's now a 20-second `time_sleep` between the two. Retrying first was the right call here: rewriting the policy would have changed nothing.
+
+### A Terraform diff that wouldn't go away
+
+Every plan wanted to replace the three Lake Formation database grants, because AWS reported `ALL` for a role I'd only given `DESCRIBE`. Listing every grant on the database showed the analyst with `DESCRIBE` only. Listing the analyst's grants on the same database returned `ALL, DESCRIBE`. AWS folds the database's `IAM_ALLOWED_PRINCIPALS` grant into each role's answer.
+
+That grant was the real problem. It's the account default for new databases, and it meant any role with Glue IAM permissions could create tables in the curated database without going through Lake Formation at all. I revoke it for this one database inside Terraform. The account default stays as it is, so other projects in the account don't notice. The pipeline still builds every table and the plan is clean.
+
+My first version of the revoke command had a shell precedence bug, `a || b && exit 1`, which exits even when `a` succeeds. It's rewritten to succeed whether the grant is removed now or was already gone.
+
+I could have hidden the diff with `ignore_changes`. I'm glad I didn't.
+
+### Missing pages came back as 403
+
+A request for a page that doesn't exist returned 403 through CloudFront. S3 answers a missing object with 403 if the caller can't list the bucket. That would have hidden every broken link from the error report (F6). CloudFront, and only this distribution, can now list the site bucket, so a missing page is a real 404. Going to the bucket directly still gets 403 (N7).
+
+### Spark tests on a laptop
+
+First there was no Java. Then `PYTHON_VERSION_MISMATCH`, because Spark's workers picked up the system Python 3.15 while the driver ran 3.11. Then one timestamp came back two hours out: `collect()` converts timestamps to the machine's local time zone, even with the Spark session set to UTC. I installed Java 17 to match CI, and the test setup now pins the workers to the test's own Python and runs in UTC, as Glue does. 12 of 12 passed.
+
+## Running it
+
+### Real traffic came through a different edge location
+
+On the day-one checks my laptop was served from Tel Aviv (TLV55). On build day the same laptop went through Johannesburg (JNB51), with a few requests through Lagos. GitHub's US runners went through Chicago (ORD). CloudFront picks the edge location with the best latency at that moment, and that moves. The reports only ever use the edge location written in each log line.
+
+### The first backfill was stopped by its own privacy check
+
+The first backfill failed on its first day. A data quality rule meant to catch IP addresses in the user agent found plenty, and every one was a browser version: `Chrome/131.0.0.0` looks exactly like an IPv4 address. My rule was wrong.
+
+The check now asks the question I actually meant. While the raw address is still known, each row is flagged if any text column that gets kept (user agent, path, referrer, query parameter names) contains that request's own IP, and the rule needs zero flagged rows. A test covers both cases.
+
+The failure itself went the way it should. Nothing was written, Step Functions caught the error, and the alarm reached the alerts queue 70 seconds after the run stopped. N5 allows 15 minutes.
 
 ### Shared query results would have undone the column restriction
-- **Seen (while writing the N2 test):** the analyst and data engineer roles used the same Athena workgroup, with one results location both could read.
-- **Why it mattered:** Lake Formation stops the analyst selecting `visitor_id`, but Athena writes every query's result to S3. An analyst could have opened the result file of an engineer's query and read the identifiers anyway.
-- **Changed:** each role has its own workgroup, with results under its own prefix, and may use only that workgroup and prefix. Both roles also lost catalog access to the clean layer, which they never needed. The N2 test now includes "analyst cannot open the engineer's query results".
-- **Lesson:** column-level security covers the table, not the copies a query engine makes. Follow the data to every place it lands.
 
-### Quarantined lines masked IPv4 but not IPv6
-- **Seen (while writing the N1 test):** rejected log lines are kept for diagnosis with addresses masked, but the mask matched IPv4 only. A malformed line from an IPv6 visitor would have kept the full address.
-- **Changed:** the line's own client address is replaced first, then anything shaped like an IPv4 or IPv6 address. The IPv6 pattern needs `::` or all eight groups, so log times such as `21:59:16` are not mangled. Tests cover IPv6 in both a parseable and a truncated line.
-- **Lesson:** test privacy rules with both address families. Synthetic data that only produces one family will never find this.
+I found this while writing the N2 test. The analyst and data engineer roles shared one Athena workgroup and one results folder. Lake Formation stops an analyst selecting `visitor_id`, but Athena writes every query's results to S3, so an analyst could simply have opened the results file of an engineer's query.
 
-### The privacy scan flagged a coincidence, and had a hidden limit
-- **Seen:** the first N1 scan reported raw client addresses in `client_network`.
-- **Diagnosis:** all 29,431 distinct values were correct /24 or /48 network addresses. 330 of them equalled a raw address because the generator sometimes produced a host address ending in `.0`, which is the same as its own network. That reveals nothing beyond the network.
-- **Changed:** for `client_network` the test now checks that every value is a network address; every other text column is still compared against the real raw addresses. The scan also had a `LIMIT 5000` that could silently drop matches; removed.
-- **Lesson:** when a privacy check fails, prove whether it is a leak before changing either the data or the test. Then make the test ask the right question for each column.
+Each role now has its own workgroup and results prefix and can use only those. Both roles also lost catalog access to the clean layer, which they never needed. The N2 test checks that the analyst can't open the engineer's results.
 
-### Two planted answers missed at first, both in the comparison, not the platform
-- **Seen:** the first truth check matched requests, bots, broken links, the incident and the experiment effect, but failed on bytes by country (up to 2.1% high, US only) and on visitor counts (one visitor short, one day, one group).
-- **Bytes, diagnosed:** the generator's `bytes_by_country` counts human visitors only. Known crawlers are generated in the US and scripted bots in four countries, so the platform's all-traffic figure was correctly higher. Compared with the platform's human-only bytes, every day and country matches exactly.
-- **Visitors, diagnosed:** a visitor is an IP and user agent pair, on the site and in the platform. Synthetic IPv4 addresses come from a pool of about four million, so two generated sessions occasionally draw the same pair, and are then one visitor to any system. The generator now also records distinct visitors. That change uses no randomness: all 168 regenerated log files were checked byte-identical (decompressed) to the ones processed, and no existing truth value changed. The platform matches the distinct counts exactly; there was one shared pair in the week.
-- **Not changed:** no tolerance was loosened. Both fixes made the test compare like with like, and both explanations were proven before the test was changed.
-- **Lesson:** the answer key is code too, and can be wrong. Treat a mismatch as a question about both sides.
+### IPv6 addresses in rejected lines
 
-### The re-run test could not read one table
-- **Seen:** the N4 snapshot (row count and checksum per table) failed on the request table, which has an array column that cannot be cast to text.
-- **Changed:** stopped the re-run before Glue started (nothing written), joined array columns into text in the snapshot, retook it and restarted.
+Also found while writing a test. Rejected log lines are kept for diagnosis with addresses masked, and the mask only matched IPv4. A malformed line from an IPv6 visitor would have kept the full address. The line's own client address is now replaced first, then anything shaped like an IPv4 or IPv6 address. The IPv6 pattern needs `::` or all eight groups, so log times such as `21:59:16` are left alone. My synthetic data produces both address families, and the tests cover both.
 
-### Re-running a day changed two report tables
-- **Seen:** the first N4 test re-processed a day and compared every table by row count and checksum. Nine of eleven tables were identical, including the 184,389-row request table. Two report tables kept their row counts but changed content.
-- **Why:** both hold response-time percentiles, computed with Athena's `approx_percentile`. It uses a sketch that can give slightly different values on each run. Byte totals were ruled out: they are integer sums, and another table built from them was identical.
-- **Changed:** exact percentiles (nearest rank: sort the values, take the one at position ceil(p x n)). At this volume, at most about 185,000 values per group, the cost is negligible. The report tables for all eight days were rebuilt from the unchanged request table, then the N4 test was run again from a fresh snapshot.
-- **Lesson:** "re-runnable" means deterministic, not just "no duplicates". An approximate function quietly breaks that, and only a checksum comparison shows it.
-- **Second attempt found one more:** with exact percentiles, ten of eleven tables were identical, but the cost table's checksum flipped back to its earlier value. It summed per-edge decimal GB values from another report table, and decimal addition can round differently depending on order. It now totals whole bytes per pricing region from the request table, then multiplies by the price once. The test was repeated on two days (12 and 13 October), since a fault that shows only sometimes can pass a single re-run by luck.
+No line was quarantined during the build, so nothing leaked before the fix.
 
-### CI could not assume its role: GitHub's subject format had changed
-- **Seen:** the first OIDC run failed with `Not authorized to perform sts:AssumeRoleWithWebIdentity`, although the trust policy named the repository correctly.
-- **Why:** GitHub now issues this repository's tokens with an immutable subject that includes the owner and repository IDs (`repo:owner@id/name@id:...`), not just the names the trust policy expected.
-- **Changed:** the trust policy matches the immutable subject. This is stricter than the old form: a renamed, deleted and re-created repository with the same name cannot assume the role. Moved the role ARN into a repository secret so the account ID does not appear on public run pages.
-- **Lesson:** read the token's actual claims (`gh api repos/OWNER/NAME/actions/oidc/customization/sub`) instead of assuming the documented default.
+### The privacy scan flagged a coincidence
+
+The first N1 scan reported raw client addresses in `client_network`. All 29,431 distinct values were proper /24 or /48 networks. 330 of them happened to equal a raw address because the generator sometimes produced a host address ending in `.0`, and that's identical to its own network. It reveals nothing beyond the network.
+
+For that one column the test now checks that every value is a network address. Every other text column is still compared against the real raw addresses. The scan also had a `LIMIT 5000` that could have dropped matches without saying so. Gone.
+
+### Two planted answers missed on the first comparison
+
+The first truth check got requests, bots, broken links, the incident and the experiment effect right. It failed on bytes by country (up to 2.1% high, all in the US) and on visitor counts (one visitor short, one day, one group). Both problems were in my comparison.
+
+The generator's `bytes_by_country` counts human visitors only. Known crawlers are generated in the US, so the platform's all-traffic figure was correctly higher. Against the platform's human-only bytes, every day and country matches exactly.
+
+A visitor is an IP and user agent pair, on the site and in the platform. Synthetic IPv4 addresses come from a pool of about four million, so now and then two generated sessions draw the same pair and become one visitor to any system. The generator now records distinct visitors too. That change uses no randomness, and I checked it: all 168 regenerated log files are byte-identical, once decompressed, to the ones processed, and no existing truth value moved. The platform matches the distinct counts exactly. There was one shared pair all week.
+
+I didn't loosen any tolerance. Both explanations were proven before the test changed.
+
+### Re-running a day changed two tables, then one
+
+N4 says a day can be processed again with identical results, so the test takes a row count and checksum of every table, re-runs the day, and compares. The first attempt couldn't read the request table at all (an array column won't cast to text). I stopped the re-run before Glue started, fixed the snapshot and started again.
+
+Then 9 of 11 tables matched, including the 184,389-row request table. The two that didn't hold response-time percentiles from Athena's `approx_percentile`, which can return slightly different values on each run. They're exact now: sort the values and take the one at position ceil(p × n). With at most about 185,000 values per group it costs next to nothing.
+
+The next attempt matched 10 of 11. The cost table's checksum had flipped back to an earlier value. It added up decimal GB figures from another report table, and decimal addition can round differently depending on the order. It now totals whole bytes per pricing region from the request table and multiplies by the price once. Because a fault like that only shows some of the time, I re-ran two days, 12 and 13 October. Both matched on every table.
+
+## Publishing
+
+### CI ran a newer scanner than my laptop
+
+Checkov passed locally with 186 checks and failed on the first push with 248 checks and 23 failures. CI pulls the latest image (3.3.29) and my laptop had 3.3.20. I went through each new finding. Two conflict with the brief. Cross-region replication would move data out of eu-west-2, which N6 forbids. Versioning on the raw bucket would keep deleted logs, IP addresses included, past the 7 days N1 allows. Every skip has its reason in the config. With the local scanner on the same version, it's 248 passed and 0 failed.
+
+### CI couldn't assume its role
+
+The first OIDC run failed with `Not authorized to perform sts:AssumeRoleWithWebIdentity`, even though the trust policy named the repository correctly. GitHub now issues this repository's tokens with an immutable subject that includes the owner and repository IDs (`repo:owner@id/name@id:...`). The trust policy matches that form now, and it's stricter: a repository deleted and re-created under the same name can't assume the role. The role ARN moved into a repository secret so the account ID doesn't show on public run pages.
+
+`gh api repos/OWNER/NAME/actions/oidc/customization/sub` shows what a repository's tokens will actually say. I'd check it first next time.

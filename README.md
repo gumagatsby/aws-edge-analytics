@@ -48,14 +48,18 @@ Everything is Terraform, deployed from a laptop and from GitHub Actions with OID
 
 Verified from the platform's own tables, on two kinds of traffic: real CloudFront traffic (served from Johannesburg and Lagos from a laptop, and Chicago from GitHub's US runners) and a synthetic week of about 185,000 requests a day with answers planted in it.
 
-**Cache key normalisation works.** Homepage visits that arrive with tracking parameters (`utm_source`, `gclid`) each created a separate cache entry. Stripping them at the edge:
+### Cache key normalisation
+
+Homepage visits that arrive with tracking parameters (`utm_source`, `gclid`) each created their own cache entry, so almost all of them went back to the origin. The viewer-request function strips the parameters before the cache lookup:
 
 | Homepage requests with tracking parameters | Normalisation off | Normalisation on |
 |---|---|---|
 | Real traffic, same 3,933 requests replayed | 1 of 99 cache hits (1.0%) | 99 of 99 (100%) |
 | Synthetic week | 8.0% | 97.5% |
 
-**The platform recovers every planted answer** ([evidence](docs/evidence/truth-recovery.txt)): every request, the bot share every day (about 12%, including a scraper posing as a browser), every broken-link 404, every 502 of a planted incident at one edge location, and human bytes by country exactly. The homepage experiment: design B converts at 3.52% against 2.89% for A, a 0.63 point lift with a 95% interval of 0.39 to 0.87 points; the planted lift was 0.60.
+### Planted answers
+
+The synthetic week has known answers built in, and the platform found all of them ([evidence](docs/evidence/truth-recovery.txt)): every request, the bot share every day (about 12%, including a scraper posing as a browser), every broken-link 404, every 502 of a planted incident at one edge location, and human bytes by country exactly. In the homepage experiment, design B converts at 3.52% and A at 2.89%. That's a 0.63 point lift with a 95% interval of 0.39 to 0.87 points, and the planted lift was 0.60.
 
 ## Requirements, demonstrated
 

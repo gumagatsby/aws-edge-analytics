@@ -106,6 +106,8 @@ def build(query, curated, clean):
                        "bot_share": int(d["bots"]) / int(d["requests"]), "errors_4xx": int(d["e4"]),
                        "errors_5xx": int(d["e5"])} for d in daily],
             "totals": {"requests": total, "gb": sum(float(d["gb"]) for d in daily),
+                       "hit_ratio": (sum(int(d["hits"]) for d in daily) / sum(int(d["cacheable"]) for d in daily)
+                                     if sum(int(d["cacheable"]) for d in daily) else None),
                        "bot_share": bot_total / total if total else None, "days": len(daily)},
             "edges": [{"edge": e["edge_code"], "city": e["city"], "country": e["country"],
                        "pricing_region": e["pricing_region"], "price_class": e["price_class"],

@@ -38,23 +38,23 @@ Build a platform that answers P1 to P4 from CloudFront's own logs, fixes P5, and
 
 | ID | Requirement | How it is checked |
 |---|---|---|
-| N1 | **No raw IP address** is stored beyond the raw log layer. Raw logs are deleted after 7 days. | A test scans every curated table for IPv4 and IPv6 patterns; S3 lifecycle rule in Terraform |
+| N1 | No raw IP address is stored beyond the raw log layer. Raw logs are deleted after 7 days. | A test scans every curated table for IPv4 and IPv6 patterns; S3 lifecycle rule in Terraform |
 | N2 | Analysts can see aggregated data only. Pseudonymised visitor identifiers are visible only to the data engineering role. | Lake Formation column permissions, tested with both roles |
-| N3 | **Every row is accounted for**: raw rows = clean rows + quarantined rows, for every run. | Reconciliation step in every run; the run fails if it does not balance |
+| N3 | Every row is accounted for: raw rows = clean rows + quarantined rows, for every run. | Reconciliation step in every run; the run fails if it does not balance |
 | N4 | Any day can be re-processed without creating duplicates. | Run the same day twice; results must be identical |
 | N5 | Data is ready by 06:00 UTC for the previous day. A failed run alerts within 15 minutes. | Scheduled run; alarm on failure |
 | N6 | Data stays in the UK region (eu-west-2) once it lands. | All buckets, Glue and Athena in eu-west-2 |
 | N7 | All storage is private and encrypted. The origin can be reached only through CloudFront. | Bucket policies, Origin Access Control; direct-origin request test must fail |
 | N8 | No long-lived AWS keys anywhere, including CI. | GitHub Actions uses OIDC |
 | N9 | Everything is defined in Terraform and can be destroyed completely. | `terraform destroy`, then a check that nothing is left |
-| N10 | Build cost under **$10**, measured from the AWS bill. | Budget alarm at $10; Cost Explorer after teardown |
+| N10 | Build cost under $10, measured from the AWS bill. | Budget alarm at $10; Cost Explorer after teardown |
 
 ### Constraints
 
 | Constraint | Effect on the design |
 |---|---|
 | The AWS account is on the Free plan. Kinesis and Firehose return `SubscriptionRequiredException`; Lambda@Edge is not supported. | No real-time log streaming; no Lambda@Edge. Edge logic must use CloudFront Functions. |
-| The team knows SQL, not Python frameworks, and will not run servers. | Transformations the team maintains are SQL. No self-hosted orchestrator. |
+| The team knows SQL well, has little Python, and will not run servers. | Transformations the team maintains are SQL. No self-hosted orchestrator. |
 | Budget under $10 for the build. | Nothing billed by the hour while idle. |
 
 ## Scope
@@ -67,8 +67,8 @@ Build a platform that answers P1 to P4 from CloudFront's own logs, fixes P5, and
 
 The site gets no real customers, so traffic is generated two ways, and every report says which is which:
 
-1. **Real CloudFront traffic** from two places: a load generator on the developer's laptop (served from whichever edge location CloudFront chooses: Tel Aviv on the day-one checks, Johannesburg and Lagos on build day), and GitHub Actions runners in the United States. These produce genuine CloudFront logs from real edge locations, and the parser is tested against them.
-2. **Synthetic logs** in CloudFront's exact format, simulating a worldwide audience, a homepage experiment with a known built-in effect, and a known share of bots. Because the true answers are known, the synthetic data tests whether the platform finds them.
+1. Real CloudFront traffic from two places: a load generator on the developer's laptop (served from whichever edge location CloudFront chooses: Tel Aviv on the day-one checks, Johannesburg and Lagos on build day), and GitHub Actions runners in the United States. These produce genuine CloudFront logs from real edge locations, and the parser is tested against them.
+2. Synthetic logs in CloudFront's exact format, simulating a worldwide audience, a homepage experiment with a known built-in effect, and a known share of bots. Because the true answers are known, the synthetic data tests whether the platform finds them.
 
 ## Success criteria
 
