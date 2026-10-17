@@ -1,0 +1,10 @@
+N9 evidence: everything destroyed. terraform destroy on 2026-10-17: 144 resources, exit 0; state now holds no resources.
+Checked afterwards in eu-west-2 and us-east-1:
+  resources tagged Project=edge-analytics: eu-west-2 1 (the KMS key, PendingDeletion until 2026-10-24, AWS's
+    minimum 7-day window), us-east-1 0
+  S3 buckets, CloudFront distribution and functions, Glue jobs and databases, Lambda functions, Step Functions,
+  Athena workgroups, IAM roles, Scheduler schedules, log deliveries, KMS aliases, SSM parameters, budgets: none
+Account-wide settings left as they were: the Lake Formation data lake settings resource was removed from state
+before the destroy, because deleting it would have reset the account's defaults for other projects. Data lake
+settings before and after the destroy are identical. The other project's database (ssp_sales, tables rejected
+and sales) is unaffected.

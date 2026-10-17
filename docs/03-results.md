@@ -98,7 +98,7 @@ Homepage links from campaigns arrive with tracking parameters (`utm_source`, `gc
 | N6 | Data stays in eu-west-2 | Pass: every bucket in eu-west-2 | [n6](evidence/n6-region.txt) |
 | N7 | Origin reachable only through CloudFront | Pass: direct S3 and function URL return 403 | `scripts/verify.py n7` |
 | N8 | No long-lived AWS keys, including CI | Pass: OIDC, immutable subject | [n8](evidence/n8-oidc.txt) |
-| N9 | Everything in Terraform, destroyed completely | Recorded after teardown | |
+| N9 | Everything in Terraform, destroyed completely | Pass: 144 resources destroyed, nothing left but the KMS key in its 7-day deletion window | [n9](evidence/n9-teardown.txt) |
 | N10 | Build under $10 on the AWS bill | Recorded after teardown | |
 
 ## Recommendations
