@@ -63,6 +63,10 @@ jobs:
         with:
           terraform_version: 1.16.5
       - run: terraform fmt -check -recursive
+      - uses: terraform-linters/setup-tflint@v6
+        with:
+          tflint_version: v0.64.0
+      - run: tflint --recursive
       - run: terraform init -backend=false -input=false
       - run: terraform validate
 
