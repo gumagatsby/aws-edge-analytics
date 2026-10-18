@@ -1,6 +1,6 @@
 # Edge analytics on AWS
 
-[![ci](https://github.com/gumagatsby/aws-edge-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/gumagatsby/aws-edge-analytics/actions/workflows/ci.yml)
+[![ci](https://github.com/tapiwa-magumise/aws-edge-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/tapiwa-magumise/aws-edge-analytics/actions/workflows/ci.yml)
 
 A UK online retailer serves its site worldwide through Amazon CloudFront. CloudFront logs every request, and nobody reads the logs. This project turns those logs into answers: what the CDN costs by region, where the site is slow and why, whether the homepage redesign works, how much traffic is bots, and how to stop keeping visitors' IP addresses.
 

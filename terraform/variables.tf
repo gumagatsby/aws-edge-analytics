@@ -18,7 +18,7 @@ variable "github_oidc_subject" {
     gh api repos/OWNER/NAME/actions/oidc/customization/sub --jq .sub_claim_prefix
   EOT
   type        = string
-  default     = "repo:gumagatsby@266259364/aws-edge-analytics@1423275127"
+  default     = "repo:tapiwa-magumise@266259364/aws-edge-analytics@1423275127"
 }
 
 variable "raw_retention_days" {
