@@ -1,5 +1,12 @@
 # A private bucket: public access blocked, ACLs disabled, TLS required, encrypted,
 # optionally expiring objects. Extra policy statements are merged in.
+terraform {
+  required_version = ">= 1.10.0"
+  required_providers {
+    aws = { source = "hashicorp/aws", version = "~> 6.0" }
+  }
+}
+
 variable "name" { type = string }
 variable "kms_key_arn" {
   type    = string
