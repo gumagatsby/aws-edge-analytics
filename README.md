@@ -4,7 +4,7 @@
 
 A UK online retailer serves its site worldwide through Amazon CloudFront. CloudFront logs every request, and nobody reads the logs. This project turns those logs into answers: what the CDN costs by region, where the site is slow and why, whether the homepage redesign works, how much traffic is bots, and how to stop keeping visitors' IP addresses.
 
-*The retailer is fictional. The AWS services, prices, measurements and failures are real.* The brief is in [docs/01-brief.md](docs/01-brief.md), every design choice with its alternatives and costs in [docs/02-options-and-decisions.md](docs/02-options-and-decisions.md), what the platform found and what the client should do in [docs/03-results.md](docs/03-results.md), and every problem met during the build, with how it was solved, in [docs/04-build-log.md](docs/04-build-log.md). A walkthrough of the whole project is in [docs/walkthrough.pdf](docs/walkthrough.pdf).
+*The retailer is fictional. The AWS services, prices, measurements and failures are real.* The brief is in [docs/01-brief.md](docs/01-brief.md), every design choice with its alternatives and costs in [docs/02-options-and-decisions.md](docs/02-options-and-decisions.md), what the platform found and what the client should do in [docs/03-results.md](docs/03-results.md), and every problem met during the build, with how it was solved, in [docs/04-build-log.md](docs/04-build-log.md).
 
 ## Architecture
 
