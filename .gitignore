@@ -17,3 +17,7 @@ crash.log
 .rerun-arn
 out/
 .DS_Store
+
+# Local secrets
+.env
+.env.*
